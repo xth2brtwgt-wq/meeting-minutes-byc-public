@@ -9,11 +9,12 @@ import os
 import json
 import logging
 from datetime import datetime
+
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
-import google.generativeai as genai
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 # カスタムユーティリティのインポート
 from utils.email_sender import EmailSender
@@ -58,16 +59,18 @@ email_sender = EmailSender()
 notion_client = NotionClient()
 markdown_generator = MarkdownGenerator()
 
+
 def allowed_file(filename):
     """ファイル拡張子のチェック"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def generate_unique_filename(filename):
     """ユニークなファイル名を生成"""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     name, ext = os.path.splitext(filename)
     return f"{name}_{timestamp}{ext}"
+
 
 def transcribe_audio_with_gemini(file_path):
     """Gemini AI を使用して音声を文字起こし"""
@@ -119,6 +122,7 @@ def transcribe_audio_with_gemini(file_path):
         logger.error(f"Transcription error: {str(e)}")
         raise Exception(f"文字起こしに失敗しました: {str(e)}")
 
+
 def _format_datetime_for_gemini(datetime_str):
     """日時文字列をYYYY/MM/DD HH24:Mi形式に変換"""
     if not datetime_str or datetime_str == '未設定':
@@ -138,6 +142,7 @@ def _format_datetime_for_gemini(datetime_str):
         # パースできない場合は元の文字列を返す
         return datetime_str
 
+
 def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date=""):
     """Gemini AI を使用して議事録を生成"""
     try:
@@ -147,7 +152,7 @@ def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="
         conditions_text = f"\n\n追加条件: {conditions}" if conditions else ""
         meeting_date_text = f"\n\n会議日時: {meeting_date}" if meeting_date else ""
         
-        # 日時形式を変換（空の場合は現在時刻を使用）
+        # 日時形式を変換(空の場合は現在時刻を使用)
         if meeting_date and meeting_date.strip():
             formatted_meeting_date = _format_datetime_for_gemini(meeting_date)
         else:
@@ -167,7 +172,7 @@ def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="
         ## 出力要件
         - プロフェッショナルで構造化されたトーンを維持
         - 箇条書きと太字のヘッダーを使用して読みやすさを高める
-        - エグゼクティブサマリー、ユーザーの主要なアクション項目／コミットメント、トピックごとの詳細な内訳の3つのセクションに整理
+        - エグゼクティブサマリー、ユーザーの主要なアクション項目/コミットメント、トピックごとの詳細な内訳の3つのセクションに整理
         
         文字起こし内容：
         {transcript}
@@ -218,7 +223,12 @@ def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="
         ## 備考・その他の重要な情報
         [その他の重要な情報、補足事項、次回会議への引き継ぎ事項]
         
-        **重要**: 議題・トピックの番号は必ず1から順番に連番で記載してください。文字起こし内容から複数の議題を抽出し、それぞれに適切な番号を付けてください。太字のヘッダーを使用して構造化し、読みやすさを重視してください。
+        **重要**: 
+        - 議題・トピックの番号は必ず1から順番に連番で記載してください(1. 2. 3. 4. ...)
+        - 文字起こし内容から複数の議題を抽出し、それぞれに適切な番号を付けてください
+        - 同じ番号を複数回使用しないでください
+        - 太字のヘッダーを使用して構造化し、読みやすさを重視してください
+        - 例：1. 議題A、2. 議題B、3. 議題C のように連番で記載
         """
         
         response = model.generate_content(prompt)
@@ -228,10 +238,12 @@ def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="
         logger.error(f"Meeting notes generation error: {str(e)}")
         raise Exception(f"議事録生成に失敗しました: {str(e)}")
 
+
 @app.route('/')
 def index():
     """メインページ"""
     return render_template('index.html')
+
 
 @app.route('/health')
 def health_check():
@@ -242,6 +254,7 @@ def health_check():
         'gemini_configured': model is not None,
         'flask_version': '3.1.2'
     })
+
 
 @app.route('/test-notion')
 def test_notion():
@@ -259,6 +272,7 @@ def test_notion():
             'message': f'Notion接続テストエラー: {str(e)}',
             'timestamp': datetime.now().isoformat()
         }), 500
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -313,13 +327,13 @@ def upload_file():
         md_filepath = markdown_generator.generate_meeting_markdown(result)
         transcript_filepath = markdown_generator.generate_transcript_file(result)
         
-        # Notion登録（メール送信前に実行）
-        notion_page_id = None
+        # Notion登録(メール送信前に実行)
         if send_to_notion:
             try:
                 notion_page_id = notion_client.create_meeting_page(result)
                 result['notion_page_id'] = notion_page_id
                 result['notion_sent'] = True
+                logger.info(f'Notion登録完了: {notion_page_id}')
             except Exception as e:
                 logger.error(f'Notion登録エラー: {str(e)}')
                 result['notion_sent'] = False
@@ -328,17 +342,14 @@ def upload_file():
             result['notion_sent'] = False
             result['notion_page_id'] = None
         
-        # メール送付（Notion登録結果を含めて送信）
-        email_sent = False
-        if email and email.strip():  # 空文字列もチェック
+        # メール送付(Notion登録結果を含めて送信)
+        if email and email.strip():
             try:
-                # デバッグ情報をログに出力
-                logger.info(f'メール送信開始 - email_sent: {result.get("email_sent")}, notion_sent: {result.get("notion_sent")}')
+                logger.info(f'メール送信開始: {email}')
                 email_sender.send_meeting_minutes(email, result, transcript_filepath, md_filepath)
-                email_sent = True
                 result['email_sent'] = True
                 result['email_address'] = email
-                logger.info(f'メール送信完了 - email_sent: {result.get("email_sent")}, notion_sent: {result.get("notion_sent")}')
+                logger.info(f'メール送信完了: {email}')
             except Exception as e:
                 logger.error(f'メール送信エラー: {str(e)}')
                 result['email_sent'] = False
@@ -348,14 +359,19 @@ def upload_file():
             result['email_address'] = None
         
         # アップロードファイルの削除
-        os.remove(filepath)
+        try:
+            os.remove(filepath)
+            logger.info(f'一時ファイル削除: {filepath}')
+        except OSError as e:
+            logger.warning(f'一時ファイル削除失敗: {str(e)}')
         
         logger.info(f'処理完了: {filename}')
         return jsonify(result)
         
     except Exception as e:
-        logger.error(f'エラーが発生しました: {str(e)}')
+        logger.error(f'エラーが発生しました: {str(e)}', exc_info=True)
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/transcripts/<filename>')
 def get_transcript(filename):
@@ -365,10 +381,11 @@ def get_transcript(filename):
     except FileNotFoundError:
         return jsonify({'error': 'ファイルが見つかりません'}), 404
 
+
 if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     
-    logger.info(f'Starting Flask application on {host}:{port}')
+    logger.info(f'Starting Flask application on {host}:{port} (debug={debug})')
     app.run(host=host, port=port, debug=debug)

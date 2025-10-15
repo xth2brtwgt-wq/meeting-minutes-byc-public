@@ -55,7 +55,7 @@ class EmailSender:
 【基本情報】
 会議日時: {formatted_meeting_date}
 ファイル名: {filename_without_ext}
-処理日時: {meeting_data.get('timestamp', '不明')}
+処理日時: {self._format_datetime_for_email(meeting_data.get('timestamp', '不明'))}
 ファイルサイズ: {meeting_data.get('file_size', 0) / 1024 / 1024:.2f} MB
 
 【処理結果】
