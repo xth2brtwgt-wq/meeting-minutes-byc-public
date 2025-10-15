@@ -1,0 +1,30 @@
+name: Deploy to NAS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to NAS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.NAS_HOST }}
+        username: ${{ secrets.NAS_USER }}
+        key: ${{ secrets.NAS_SSH_KEY }}
+        script: |
+          cd /home/AdminUser/meeting-minutes-byc-dev
+          git pull origin main
+          sudo docker compose down
+          sudo docker compose build --no-cache
+          sudo docker compose up -d
+          sleep 15
+          curl -f http://localhost:5002/health || exit 1
+          echo "✅ Deployment completed successfully!"

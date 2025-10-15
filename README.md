@@ -228,7 +228,27 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 
 ---
 
-**最終更新**: 2025年10月14日  
+**最終更新**: 2025年10月15日
+
+## 🚀 GitHub + NAS デプロイ
+
+### 自動デプロイの設定
+
+1. **GitHub Secretsの設定**:
+   - `NAS_HOST`: `192.168.68.110`
+   - `NAS_USER`: `AdminUser`
+   - `NAS_SSH_KEY`: SSH秘密鍵
+
+2. **手動デプロイ**:
+   ```bash
+   # NAS環境で実行
+   cd /home/AdminUser/meeting-minutes-byc-dev
+   ./deploy.sh
+   ```
+
+3. **GitHub Actions**:
+   - `main`ブランチにプッシュすると自動デプロイ
+   - 手動実行も可能（Actions タブから）  
 **バージョン**: 1.0  
 **作成者**: AI Assistant  
 **プロジェクト**: Meeting Minutes BYC
