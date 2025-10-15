@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Minutes BYC - 音声文字起こし・議事録生成</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meeting Minutes BYC</h1>
+            <p class="subtitle">音声ファイルの文字起こしと議事録自動生成</p>
+        </header>
+
+        <main>
+            <!-- ステータス表示 -->
+            <div class="status-card" id="statusCard" style="display: none;">
+                <div class="status-icon">🔧</div>
+                <div class="status-content">
+                    <h3>システム準備中</h3>
+                    <p>Gemini AI API Keyの設定を確認しています...</p>
+                </div>
+            </div>
+
+
+            <!-- ファイルアップロード -->
+            <div class="card" id="uploadCard">
+                <h2>🎤 音声ファイルアップロード</h2>
+                
+                <!-- 会議情報入力 -->
+                <div class="form-section">
+                    <h3>📅 会議情報</h3>
+                    <div class="form-group">
+                        <label for="meetingDate">会議日時: <span style="color: red;">*</span></label>
+                        <input type="datetime-local" id="meetingDate" name="meeting_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="conditions">議事録作成条件 (任意):</label>
+                        <textarea id="conditions" name="conditions" rows="3" placeholder="例: 技術的な詳細を重視、決定事項を明確に、アクションアイテムを具体的に"></textarea>
+                    </div>
+                </div>
+
+                <!-- 配信設定 -->
+                <div class="form-section">
+                    <h3>📧 配信設定</h3>
+                    <div class="form-group">
+                        <label for="email">メールアドレス (任意):</label>
+                        <input type="email" id="email" name="email" value="mipatago.netsetting@gmail.com" placeholder="議事録をメールで送信">
+                    </div>
+                </div>
+
+
+                <!-- ファイル選択 -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>音声ファイルをドラッグ&ドロップまたはクリックして選択</p>
+                    <input type="file" id="audioFile" accept="audio/*" style="display: none;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('audioFile').click()">ファイルを選択</button>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <h4>選択されたファイル:</h4>
+                    <p id="fileName"></p>
+                    <p id="fileSize"></p>
+                    <button id="processFile" class="btn btn-primary">文字起こし・議事録生成</button>
+                </div>
+            </div>
+
+
+            <!-- 結果表示 -->
+            <div class="card" id="resultCard" style="display: none;">
+                <h2>📝 処理結果</h2>
+                
+                <!-- 処理結果サマリー -->
+                <div class="result-summary" id="resultSummary">
+                    <h3>✅ 処理完了</h3>
+                    <div class="completion-message">
+                        <p>🎉 音声の文字起こしと議事録生成が完了しました！</p>
+                        <p>📧 メールが送信されました。後でメールをご確認ください。</p>
+                        <p>📄 Notionにも登録されました。</p>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn btn-primary" onclick="backToTop()">トップ画面に戻る</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="system-info">
+                <h3>システム情報</h3>
+                <ul>
+                    <li>Flask Version: 3.1.2</li>
+                    <li>AI Model: Gemini 1.5 Flash</li>
+                    <li>対応形式: WAV, MP3, M4A, FLAC, OGG, WEBM</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

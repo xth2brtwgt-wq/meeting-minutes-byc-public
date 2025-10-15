@@ -1,0 +1,20 @@
+// .devcontainer/devcontainer.jsonの例
+{
+    "name": "NAS Python Development",
+    "dockerFile": "../Dockerfile", // 上記のDockerfileを参照
+  
+    // **最も重要：NASのフォルダをコンテナにマウントする設定**
+    "mounts": [
+      // NASの共有フォルダへのパスを設定します
+      // 例: source=/volume1/dataはNASのパス。target=/dataはコンテナ内のPythonから見えるパス。
+      "source=/volume1/data,target=/data,type=bind,consistency=cached"
+    ],
+  
+    // コンテナ起動後に実行するコマンド
+    "postCreateCommand": "pip install -r requirements.txt",
+  
+    // 開発中に便利な拡張機能 (例: Python拡張機能)
+    "extensions": [
+      "ms-python.python"
+    ]
+  }

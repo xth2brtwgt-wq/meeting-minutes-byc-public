@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  meeting-minutes-byc-dev:
+    build: .
+    container_name: meeting-minutes-byc-dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+      - ./transcripts:/app/transcripts
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - UPLOAD_DIR=/app/uploads
+      - TRANSCRIPT_DIR=/app/transcripts
+    restart: unless-stopped
+    labels:
+      - "com.docker.compose.project=meeting-minutes-byc-dev"
+      - "com.docker.compose.service=meeting-minutes-byc-dev"
+
+networks:
+  default:
+    name: meeting-minutes-byc-dev-network

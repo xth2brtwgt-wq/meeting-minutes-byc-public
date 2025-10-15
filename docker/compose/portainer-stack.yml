@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  audio-transcription:
+    build:
+      context: /volume1/docker/services/nas-project
+      dockerfile: docker/Dockerfile
+    container_name: audio-transcription-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # UGreen DXP2800最適化パス（大容量データはvolume2を使用）
+      - /volume2/data/nas-project/audio-transcription/uploads:/tmp/uploads
+      - /volume2/data/nas-project/audio-transcription/transcripts:/tmp/transcripts
+      - /volume1/docker/services/nas-project/meeting-minutes/config:/app/meeting-minutes/config
+      - /volume2/data/nas-project/audio-transcription/logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - UPLOAD_DIR=/tmp/uploads
+      - TRANSCRIPT_DIR=/tmp/transcripts
+      - WHISPER_MODEL=base
+      - WHISPER_LANGUAGE=ja
+    restart: unless-stopped
+    networks:
+      - bridge  # デフォルトブリッジネットワークを使用
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.docker.compose.project=audio-transcription"
+      - "com.docker.compose.service=audio-transcription"
+
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  # 名前付きボリューム（必要に応じて使用）
+  audio_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume2/data/nas-project/audio-transcription/uploads
+  audio_transcripts:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume2/data/nas-project/audio-transcription/transcripts

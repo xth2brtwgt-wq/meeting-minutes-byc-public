@@ -1,0 +1,3 @@
+# requirements.txtの例
+pandas
+numpy

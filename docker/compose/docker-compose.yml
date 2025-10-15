@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  audio-transcription:
+    build: 
+      context: ../..
+      dockerfile: docker/Dockerfile
+    container_name: audio-transcription-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # 音声ファイルと結果を永続化
+      - ../../meeting-minutes/data/uploads:/tmp/uploads
+      - ../../meeting-minutes/data/transcripts:/tmp/transcripts
+      # 設定ファイル
+      - ../../meeting-minutes/config:/app/meeting-minutes/config
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    # GPUを使用する場合（NASでGPU対応している場合）
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    
+  # 将来的にデータベースを追加する場合
+  # database:
+  #   image: postgres:15
+  #   container_name: transcription-db
+  #   environment:
+  #     POSTGRES_DB: transcription
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
+
