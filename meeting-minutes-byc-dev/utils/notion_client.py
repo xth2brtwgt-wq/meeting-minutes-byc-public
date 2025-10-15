@@ -173,13 +173,54 @@ class NotionClient:
         # テキストを改行で分割
         lines = text.split('\n')
         
-        for line in lines:
-            line = line.strip()
+        # 議題セクションの連続した番号付きリストを特別に処理
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
             if line:  # 空行はスキップ
-                # Markdown形式をNotionブロックに変換
-                block = self._convert_markdown_to_notion_block(line)
-                if block:
-                    blocks.append(block)
+                # 議題セクションの開始を検出
+                if line.startswith('## 主要な議題・トピック'):
+                    # 議題セクションの見出しを追加
+                    block = self._convert_markdown_to_notion_block(line)
+                    if block:
+                        blocks.append(block)
+                    
+                    # 連続した番号付きリストを処理
+                    i += 1
+                    numbered_items = []
+                    while i < len(lines):
+                        current_line = lines[i].strip()
+                        if current_line and re.match(r"^\d+\. ", current_line):
+                            # 番号を削除して内容のみを取得
+                            content = re.sub(r"^\d+\. ", "", current_line).strip()
+                            numbered_items.append(content)
+                            i += 1
+                        elif current_line and current_line.startswith('   - '):
+                            # 議題の詳細項目（内容、決定事項など）はスキップ
+                            i += 1
+                        else:
+                            # 議題セクションの終了
+                            break
+                    
+                    # 連続した番号付きリストを追加
+                    for item in numbered_items:
+                        blocks.append({
+                            "object": "block",
+                            "type": "numbered_list_item",
+                            "numbered_list_item": {
+                                "rich_text": self._parse_inline_rich_text(item)
+                            }
+                        })
+                    
+                    # 次の行から通常の処理を継続
+                    continue
+                else:
+                    # 通常のMarkdown形式をNotionブロックに変換
+                    block = self._convert_markdown_to_notion_block(line)
+                    if block:
+                        blocks.append(block)
+            
+            i += 1
         
         return blocks
     
