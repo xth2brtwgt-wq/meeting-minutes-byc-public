@@ -5,8 +5,8 @@ UGreen DXP2800でのDocker権限修正スクリプト
 
 echo "🔧 Docker権限を修正中..."
 
-# AdminUserをdockerグループに追加
-sudo usermod -aG docker AdminUser
+# your_usernameをdockerグループに追加
+sudo usermod -aG docker your_username
 
 # Dockerサービスを再起動
 sudo systemctl restart docker

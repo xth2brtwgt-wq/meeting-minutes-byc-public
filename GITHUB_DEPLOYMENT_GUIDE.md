@@ -142,7 +142,7 @@ curl -f http://localhost:5000/health
 
 ```bash
 # NAS環境で実行
-cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+cd /home/your_username/meeting-minutes-byc-dev/meeting-minutes-byc-dev
 
 # 最新のコードを取得
 git pull origin main
@@ -185,7 +185,7 @@ echo "🔍 Checking application health..."
 sleep 15
 if curl -f http://localhost:5000/health; then
     echo "✅ Deployment completed successfully!"
-    echo "🌐 Application is running at: http://192.168.68.110:5000"
+    echo "🌐 Application is running at: http://your_nas_ip:5000"
 else
     echo "❌ Health check failed!"
     echo "📋 Checking logs..."
@@ -210,7 +210,7 @@ chmod +x ../deploy.sh
 ssh-keygen -t rsa -b 4096 -C "github-actions"
 
 # 公開鍵をNASに追加
-ssh-copy-id -i ~/.ssh/id_rsa.pub AdminUser@192.168.68.110
+ssh-copy-id -i ~/.ssh/id_rsa.pub your_username@your_nas_ip
 ```
 
 ### 2. GitHub Secretsの設定
@@ -250,7 +250,7 @@ jobs:
         username: ${{ secrets.NAS_USER }}
         key: ${{ secrets.NAS_SSH_KEY }}
         script: |
-          cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+          cd /home/your_username/meeting-minutes-byc-dev/meeting-minutes-byc-dev
           git pull origin main
           sudo docker compose -f docker-compose.dev.yml down
           sudo docker compose -f docker-compose.dev.yml build --no-cache
@@ -303,7 +303,7 @@ sudo docker exec -it meeting-minutes-byc-dev bash
 ls -la
 
 # 必要に応じて権限を変更
-sudo chown -R AdminUser:admin .
+sudo chown -R your_username:admin .
 sudo chmod -R 755 .
 ```
 
@@ -316,13 +316,13 @@ sudo chmod -R 755 .
 curl -f http://localhost:5000/health
 
 # 外部アクセス確認
-curl http://192.168.68.110:5000/health
+curl http://your_nas_ip:5000/health
 ```
 
 ### ブラウザアクセス
 
 ```
-http://192.168.68.110:5000
+http://your_nas_ip:5000
 ```
 
 ## 🎯 ベストプラクティス
@@ -344,7 +344,7 @@ http://192.168.68.110:5000
 
 ```bash
 # 定期的なバックアップ
-cp -r /home/AdminUser/meeting-minutes-byc-dev /home/AdminUser/backup-$(date +%Y%m%d)
+cp -r /home/your_username/meeting-minutes-byc-dev /home/your_username/backup-$(date +%Y%m%d)
 ```
 
 ## 📚 関連ドキュメント

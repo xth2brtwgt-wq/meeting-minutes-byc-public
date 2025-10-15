@@ -7,7 +7,7 @@ UGreen DXP2800 + Portainer対応
 set -e
 
 # 設定変数（UGreen DXP2800環境）
-NAS_IP="192.168.68.110"
+NAS_IP="your_nas_ip"
 PORTAINER_URL="http://${NAS_IP}:9000"
 PORTAINER_USER="adminuser"
 PORTAINER_PASS="Tsuj!19700308"
@@ -54,7 +54,7 @@ docker build -f docker/Dockerfile -t audio-transcription:latest .
 
 # 4. イメージをNASに転送
 echo "📤 イメージをNASに転送中..."
-docker save audio-transcription:latest | ssh AdminUser@${NAS_IP} "docker load"
+docker save audio-transcription:latest | ssh your_username@${NAS_IP} "docker load"
 
 # 5. Portainerスタックを作成
 echo "📦 Portainerスタックを作成中..."

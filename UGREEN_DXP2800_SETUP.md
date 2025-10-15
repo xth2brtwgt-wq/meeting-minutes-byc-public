@@ -37,16 +37,16 @@
 
 ```bash
 # SSH接続
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 
 # ディレクトリセットアップスクリプトを実行
 cd /volume1/docker/services/
 sudo mkdir -p nas-project
-sudo chown -R AdminUser:AdminUser nas-project
+sudo chown -R your_username:your_username nas-project
 
 # データ保存ディレクトリの作成
 sudo mkdir -p /volume2/data/nas-project/audio-transcription/{uploads,transcripts,logs,backups}
-sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
+sudo chown -R your_username:your_username /volume2/data/nas-project
 sudo chmod -R 755 /volume2/data/nas-project
 ```
 
@@ -54,19 +54,19 @@ sudo chmod -R 755 /volume2/data/nas-project
 
 ```bash
 # ローカルからNASにアップロード
-rsync -avz --progress /Users/Yoshi/nas-project/ AdminUser@192.168.68.110:/volume1/docker/services/nas-project/
+rsync -avz --progress /Users/Yoshi/nas-project/ your_username@your_nas_ip:/volume1/docker/services/nas-project/
 ```
 
 ### Step 3: Docker権限の修正
 
 ```bash
 # SSH接続後
-sudo usermod -aG docker AdminUser
+sudo usermod -aG docker your_username
 sudo systemctl restart docker
 
 # SSH接続を一度切断して再接続
 exit
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 
 # 権限確認
 docker ps
@@ -75,7 +75,7 @@ docker ps
 ### Step 4: Portainerでのスタック作成
 
 1. **Portainer管理画面にアクセス**
-   - URL: http://192.168.68.110:9000
+   - URL: http://your_nas_ip:9000
    - ユーザー: adminuser
    - パスワード: Tsuj!19700308
 
@@ -120,8 +120,8 @@ environment:
 
 ## 🔍 アクセス方法
 
-- **Webアプリケーション**: http://192.168.68.110:5000
-- **Portainer管理画面**: http://192.168.68.110:9000
+- **Webアプリケーション**: http://your_nas_ip:5000
+- **Portainer管理画面**: http://your_nas_ip:9000
 
 ## 🔄 メンテナンス
 
@@ -156,8 +156,8 @@ du -sh /volume2/data/nas-project/audio-transcription/*
 
 1. **権限エラー**
    ```bash
-   sudo chown -R AdminUser:AdminUser /volume1/docker/services/nas-project
-   sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
+   sudo chown -R your_username:your_username /volume1/docker/services/nas-project
+   sudo chown -R your_username:your_username /volume2/data/nas-project
    ```
 
 2. **ポート競合**

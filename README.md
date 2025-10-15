@@ -44,7 +44,7 @@
 ### 1. 前提条件
 - Ugreen NAS (DXP2800)
 - Docker & Docker Compose
-- 管理者権限 (AdminUser)
+- 管理者権限 (your_username)
 
 ### 2. 必要なAPI キー
 - **Gemini AI API キー**: https://makersuite.google.com/app/apikey
@@ -54,11 +54,11 @@
 ### 3. デプロイメント
 ```bash
 # NASに接続
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 
 # プロジェクトディレクトリを作成
-mkdir -p /home/AdminUser/meeting-minutes-byc-dev
-cd /home/AdminUser/meeting-minutes-byc-dev
+mkdir -p /home/your_username/meeting-minutes-byc-dev
+cd /home/your_username/meeting-minutes-byc-dev
 
 # 設定ファイルを作成（詳細はクイックスタートガイドを参照）
 # docker-compose.yml, Dockerfile, requirements.txt, .env など
@@ -67,12 +67,12 @@ cd /home/AdminUser/meeting-minutes-byc-dev
 sudo docker compose up -d
 
 # ヘルスチェック
-curl http://192.168.68.110:5002/health
+curl http://your_nas_ip:5002/health
 ```
 
 ### 4. アクセス
-- **URL**: http://192.168.68.110:5002
-- **ヘルスチェック**: http://192.168.68.110:5002/health
+- **URL**: http://your_nas_ip:5002
+- **ヘルスチェック**: http://your_nas_ip:5002/health
 
 ## 📁 プロジェクト構造
 
@@ -177,7 +177,7 @@ sudo docker exec -it meeting-minutes-byc-dev-app curl localhost:5000/health
 ### ヘルスチェック
 ```bash
 # 定期的なヘルスチェック
-curl -f http://192.168.68.110:5002/health || echo "Service down"
+curl -f http://your_nas_ip:5002/health || echo "Service down"
 ```
 
 ### ログ監視
@@ -235,14 +235,14 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 ### 自動デプロイの設定
 
 1. **GitHub Secretsの設定**:
-   - `NAS_HOST`: `192.168.68.110`
-   - `NAS_USER`: `AdminUser`
+   - `NAS_HOST`: `your_nas_ip`
+   - `NAS_USER`: `your_username`
    - `NAS_SSH_KEY`: SSH秘密鍵
 
 2. **手動デプロイ**:
    ```bash
    # NAS環境で実行
-   cd /home/AdminUser/meeting-minutes-byc-dev
+   cd /home/your_username/meeting-minutes-byc-dev
    ./deploy.sh
    ```
 
