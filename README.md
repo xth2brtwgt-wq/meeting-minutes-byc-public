@@ -5,9 +5,10 @@
 ## 🚀 主要機能
 
 - **音声文字起こし**: Gemini AIによる高精度な音声転写
-- **議事録生成**: AIによる構造化された議事録作成
-- **Notion連携**: 自動的にNotionページ作成
-- **メール送信**: 議事録の自動配信
+- **議事録生成**: AIによる構造化された議事録作成（エグゼクティブアシスタント形式）
+- **Notion連携**: 自動的にNotionページ作成（アイコン付きヘッダー、番号付きリスト）
+- **メール送信**: 議事録の自動配信（添付ファイル付き）
+- **リアルタイムステータス**: Web UIでの処理状況表示
 - **ファイル管理**: アップロードファイルと生成ファイルの管理
 
 ## 📋 対応形式
@@ -19,11 +20,12 @@
 ## 🛠️ 技術スタック
 
 - **Backend**: Flask 3.1.2 (Python 3.11)
-- **AI**: Google Gemini AI
-- **Database**: Notion API
-- **Email**: Gmail SMTP
+- **AI**: Google Gemini AI (音声転写・議事録生成)
+- **Database**: Notion API (ページ作成・データ管理)
+- **Email**: Gmail SMTP (自動配信)
 - **Container**: Docker & Docker Compose
-- **Frontend**: HTML/CSS/JavaScript
+- **Frontend**: HTML/CSS/JavaScript (リアルタイムUI)
+- **Timezone**: Asia/Tokyo (JST対応)
 
 ## 📚 ドキュメント
 
@@ -199,6 +201,21 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 - 定期的なAPI キーのローテーション
 - 内部ネットワークでのみアクセス可能
 
+## ✅ 最新の改善点 (v1.1)
+
+### 機能改善
+- ✅ **議事録生成の強化**: エグゼクティブアシスタント形式の構造化された議事録
+- ✅ **Notion統合の改善**: アイコン付きヘッダー、番号付きリストの連番表示
+- ✅ **メール機能の最適化**: 送信ステータスの論理的な表示
+- ✅ **タイムゾーン対応**: JST (Asia/Tokyo) での正確な日時表示
+- ✅ **リアルタイムUI**: 処理状況の動的表示
+- ✅ **JavaScript構文エラー修正**: ブラウザ互換性の向上
+
+### 技術改善
+- ✅ **Docker設定の最適化**: タイムゾーン設定、依存関係の整理
+- ✅ **エラーハンドリングの改善**: 詳細なログ出力
+- ✅ **コード品質の向上**: 型安全性、デバッグ機能の追加
+
 ## 🚀 今後の拡張予定
 
 ### 機能拡張
@@ -210,7 +227,7 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 ### 技術改善
 - [ ] 非同期処理の導入
 - [ ] レスポンシブデザインの強化
-- [ ] エラーハンドリングの改善
+- [ ] WebSocketによるリアルタイム更新
 - [ ] 詳細な操作ログの記録
 
 ## 📞 サポート
@@ -228,7 +245,7 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 
 ---
 
-**最終更新**: 2025年10月15日
+**最終更新**: 2025年10月16日
 
 ## 🚀 GitHub + NAS デプロイ
 
