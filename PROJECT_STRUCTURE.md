@@ -16,10 +16,30 @@ nas-project/
 │       ├── setup_nas.py         # NAS環境セットアップスクリプト
 │       └── backup_data.py       # データバックアップスクリプト
 │
-├── 📁 meeting-minutes/           # 議事録作成アプリケーション
-│   ├── 📁 app/                  # アプリケーション本体
+├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版）
+│   ├── app.py                  # メインアプリケーション（Flask）
+│   ├── requirements.txt        # Python依存関係
+│   ├── docker-compose.dev.yml  # Docker Compose設定
+│   ├── Dockerfile              # Dockerイメージ定義
+│   ├── .env                    # 環境変数設定
+│   ├── 📁 utils/               # ユーティリティモジュール
+│   │   ├── email_sender.py     # メール送信機能
+│   │   ├── notion_client.py    # Notion連携機能
+│   │   └── markdown_generator.py # Markdown生成機能
+│   ├── 📁 templates/           # HTMLテンプレート
+│   │   └── index.html          # メインWebページ
+│   ├── 📁 static/              # 静的ファイル
+│   │   ├── 📁 css/
+│   │   │   └── style.css       # スタイルシート
+│   │   └── 📁 js/
+│   │       └── app.js          # JavaScript（リアルタイムUI）
+│   ├── 📁 uploads/             # アップロードされた音声ファイル
+│   └── 📁 transcripts/         # 文字起こし結果・議事録
+│
+├── 📁 meeting-minutes-byc/     # 議事録作成アプリケーション（旧版）
+│   ├── 📁 app/                 # アプリケーション本体
 │   │   └── app.py              # メインアプリケーション（Flask）
-│   ├── 📁 templates/            # HTMLテンプレート
+│   ├── 📁 templates/           # HTMLテンプレート
 │   │   └── index.html          # メインWebページ
 │   ├── 📁 config/              # 設定ファイル
 │   │   ├── app.json            # アプリケーション設定
@@ -60,7 +80,27 @@ nas-project/
 - **`setup_nas.py`**: NAS環境の自動セットアップ
 - **`backup_data.py`**: データのバックアップ・復元
 
-### Meeting Minutes アプリケーション
+### Meeting Minutes BYC Dev アプリケーション（最新版）
+
+#### `meeting-minutes-byc-dev/`
+- **`app.py`**: Flask Webアプリケーション
+  - 音声ファイルアップロード
+  - Gemini AI文字起こし
+  - エグゼクティブアシスタント形式の議事録生成
+  - Notion連携（アイコン付きヘッダー、番号付きリスト）
+  - Gmail SMTP自動配信
+  - リアルタイムステータス表示
+
+#### `meeting-minutes-byc-dev/utils/`
+- **`email_sender.py`**: メール送信機能（Gmail SMTP）
+- **`notion_client.py`**: Notion API連携（ページ作成、ブロック管理）
+- **`markdown_generator.py`**: Markdown生成機能
+
+#### `meeting-minutes-byc-dev/static/`
+- **`css/style.css`**: レスポンシブデザイン
+- **`js/app.js`**: リアルタイムUI更新
+
+### Meeting Minutes アプリケーション（旧版）
 
 #### `meeting-minutes/app/`
 - **`app.py`**: Flask Webアプリケーション
@@ -78,25 +118,38 @@ nas-project/
 
 ## 🚀 使用方法
 
-### 1. ローカル開発
+### 1. ローカル開発（最新版）
+```bash
+cd meeting-minutes-byc-dev
+pip install -r requirements.txt
+python app.py
+```
+
+### 2. Docker実行（最新版）
+```bash
+cd meeting-minutes-byc-dev
+sudo docker compose -f docker-compose.dev.yml up -d
+```
+
+### 3. ローカル開発（旧版）
 ```bash
 cd meeting-minutes
 pip install -r requirements.txt
 python app/app.py
 ```
 
-### 2. Docker実行
+### 4. Docker実行（旧版）
 ```bash
 cd docker/compose
 docker-compose up -d
 ```
 
-### 3. NAS環境セットアップ
+### 5. NAS環境セットアップ
 ```bash
 python common/scripts/setup_nas.py --nas-ip your_nas_ip --username your_username
 ```
 
-### 4. データバックアップ
+### 6. データバックアップ
 ```bash
 python common/scripts/backup_data.py --action create --backup-name meeting_data
 ```
@@ -115,7 +168,19 @@ python common/scripts/backup_data.py --action create --backup-name meeting_data
 
 ## 📋 設定管理
 
-### 環境変数
+### 環境変数（最新版）
+- `GEMINI_API_KEY`: Google Gemini AI APIキー
+- `NOTION_API_KEY`: Notion APIキー
+- `NOTION_DATABASE_ID`: NotionデータベースID
+- `EMAIL_USER`: Gmail送信者アドレス
+- `EMAIL_PASSWORD`: Gmailアプリパスワード
+- `FLASK_HOST`: アプリケーションのホスト
+- `FLASK_PORT`: アプリケーションのポート
+- `UPLOAD_FOLDER`: アップロードディレクトリ
+- `TRANSCRIPT_FOLDER`: 文字起こし結果ディレクトリ
+- `TZ`: タイムゾーン（Asia/Tokyo）
+
+### 環境変数（旧版）
 - `FLASK_HOST`: アプリケーションのホスト
 - `FLASK_PORT`: アプリケーションのポート
 - `WHISPER_MODEL`: 使用するWhisperモデル

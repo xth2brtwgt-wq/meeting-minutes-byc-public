@@ -76,8 +76,14 @@
                     <h3>✅ 処理完了</h3>
                     <div class="completion-message">
                         <p>🎉 音声の文字起こしと議事録生成が完了しました！</p>
-                        <p>📧 メールが送信されました。後でメールをご確認ください。</p>
-                        <p>📄 Notionにも登録されました。</p>
+                        <div id="emailStatus" class="status-item">
+                            <span class="status-label">📧 メール送信:</span>
+                            <span class="status-value" id="emailStatusValue">確認中...</span>
+                        </div>
+                        <div id="notionStatus" class="status-item">
+                            <span class="status-label">📄 Notion登録:</span>
+                            <span class="status-value" id="notionStatusValue">確認中...</span>
+                        </div>
                     </div>
                 </div>
 

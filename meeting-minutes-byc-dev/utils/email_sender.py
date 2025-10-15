@@ -36,8 +36,6 @@ class EmailSender:
             msg['Subject'] = f"議事録 - {meeting_data.get('meeting_date', '会議')}"
             
             # 処理結果の確認
-            email_sent = meeting_data.get('email_sent', False)
-            email_error = meeting_data.get('email_error', '')
             notion_sent = meeting_data.get('notion_sent', False)
             notion_error = meeting_data.get('notion_error', '')
             
@@ -55,7 +53,7 @@ class EmailSender:
 【基本情報】
 会議日時: {formatted_meeting_date}
 ファイル名: {filename_without_ext}
-処理日時: {meeting_data.get('timestamp', '不明')}
+処理日時: {self._format_datetime_for_email(meeting_data.get('timestamp', '不明'))}
 ファイルサイズ: {meeting_data.get('file_size', 0) / 1024 / 1024:.2f} MB
 
 【処理結果】
@@ -63,7 +61,6 @@ class EmailSender:
 ✅ 音声文字起こし: 完了
 ✅ 議事録生成: 完了
 ✅ Markdownファイル生成: 完了
-{'✅ メール送信: 完了' if email_sent else f'❌ メール送信: エラー ({email_error})' if email_error else '⚠️ メール送信: 未設定'}
 {'✅ Notion登録: 完了' if notion_sent else f'❌ Notion登録: エラー ({notion_error})' if notion_error else '⚠️ Notion登録: 未設定'}
 
 【添付ファイル】

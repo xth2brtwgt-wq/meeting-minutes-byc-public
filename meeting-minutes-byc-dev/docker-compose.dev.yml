@@ -16,6 +16,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - UPLOAD_DIR=/app/uploads
       - TRANSCRIPT_DIR=/app/transcripts
+      - TZ=Asia/Tokyo
     restart: unless-stopped
     labels:
       - "com.docker.compose.project=meeting-minutes-byc-dev"
