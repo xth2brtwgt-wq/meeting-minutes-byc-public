@@ -248,21 +248,55 @@ class MeetingMinutesApp {
         // 結果カードの表示
         document.getElementById('resultCard').style.display = 'block';
         
-        // 処理完了メッセージに更新
-        document.getElementById('resultSummary').innerHTML = `
-            <h3>✅ 処理完了</h3>
-            <div class="completion-message">
-                <p>🎉 音声の文字起こしと議事録生成が完了しました！</p>
-                <p>📧 メールが送信されました。後でメールをご確認ください。</p>
-                <p>📄 Notionにも登録されました。</p>
-            </div>
-        `;
+        // メール送信ステータスの表示
+        this.updateEmailStatus(result);
+        
+        // Notion登録ステータスの表示
+        this.updateNotionStatus(result);
         
         // 結果をローカルストレージに保存
         localStorage.setItem('lastResult', JSON.stringify(result));
         
         // ボタンを有効化
         this.enableButtons();
+    }
+
+    updateEmailStatus(result) {
+        const emailStatusValue = document.getElementById('emailStatusValue');
+        if (!emailStatusValue) return;
+
+        const emailSent = result.email_sent;
+        const emailAddress = result.email_address;
+        const emailError = result.email_error;
+
+        if (emailSent === true) {
+            emailStatusValue.innerHTML = `<span style="color: green;">✅ 送信完了 (${emailAddress})</span>`;
+        } else if (emailSent === false && emailError) {
+            emailStatusValue.innerHTML = `<span style="color: red;">❌ 送信失敗: ${emailError}</span>`;
+        } else if (emailSent === false && !emailAddress) {
+            emailStatusValue.innerHTML = `<span style="color: orange;">⚠️ メール送信: 未設定</span>`;
+        } else {
+            emailStatusValue.innerHTML = `<span style="color: gray;">❓ 不明</span>`;
+        }
+    }
+
+    updateNotionStatus(result) {
+        const notionStatusValue = document.getElementById('notionStatusValue');
+        if (!notionStatusValue) return;
+
+        const notionSent = result.notion_sent;
+        const notionPageId = result.notion_page_id;
+        const notionError = result.notion_error;
+
+        if (notionSent === true && notionPageId) {
+            notionStatusValue.innerHTML = `<span style="color: green;">✅ 登録完了</span>`;
+        } else if (notionSent === false && notionError) {
+            notionStatusValue.innerHTML = `<span style="color: red;">❌ 登録失敗: ${notionError}</span>`;
+        } else if (notionSent === false) {
+            notionStatusValue.innerHTML = `<span style="color: orange;">⚠️ 登録: 未実行</span>`;
+        } else {
+            notionStatusValue.innerHTML = `<span style="color: gray;">❓ 不明</span>`;
+        }
     }
 
     backToTop() {
