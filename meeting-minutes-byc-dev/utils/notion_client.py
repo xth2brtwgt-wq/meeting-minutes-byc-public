@@ -8,7 +8,7 @@ import os
 import logging
 from notion_client import Client
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +68,10 @@ class NotionClient:
                         # その他の形式をISO形式に変換
                         dt = datetime.strptime(meeting_date, '%Y-%m-%d %H:%M:%S')
                     
-                    # UIから入力された日時は既に日本時間なので、そのまま使用
-                    dt_jst = dt.replace(tzinfo=None)
+                    # UIから入力された日時は日本時間として扱い、JSTタイムゾーンを明示的に設定
+                    # 日本時間（UTC+9）として設定
+                    jst = timezone(timedelta(hours=9))
+                    dt_jst = dt.replace(tzinfo=jst)
                     iso_date = dt_jst.isoformat()
                     
                     properties["MeetingDate"] = {
@@ -78,26 +80,30 @@ class NotionClient:
                         }
                     }
                 except ValueError:
-                    # パースできない場合は現在時刻を使用
-                    dt_jst = datetime.now()
+                    # パースできない場合は現在時刻を日本時間として使用
+                    jst = timezone(timedelta(hours=9))
+                    dt_jst = datetime.now(jst)
                     properties["MeetingDate"] = {
                         "date": {
                             "start": dt_jst.isoformat()
                         }
                     }
             else:
-                # 空の場合は現在時刻を使用
-                dt_jst = datetime.now()
+                # 空の場合は現在時刻を日本時間として使用
+                jst = timezone(timedelta(hours=9))
+                dt_jst = datetime.now(jst)
                 properties["MeetingDate"] = {
                     "date": {
                         "start": dt_jst.isoformat()
                     }
                 }
             
-            # 作成日時は常に現在時刻
+            # 作成日時は常に現在時刻（日本時間）
+            jst = timezone(timedelta(hours=9))
+            dt_jst = datetime.now(jst)
             properties["CreationDate"] = {
                 "date": {
-                    "start": datetime.now().isoformat()
+                    "start": dt_jst.isoformat()
                 }
             }
             
