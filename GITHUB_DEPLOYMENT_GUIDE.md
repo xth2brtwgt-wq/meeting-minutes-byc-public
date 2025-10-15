@@ -89,7 +89,7 @@ git push -u origin main
 
 ```bash
 # NASに接続
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 
 # Gitをインストール（Ubuntuベースの場合）
 sudo apt update
@@ -103,7 +103,7 @@ git --version
 
 ```bash
 # 既存のプロジェクトをバックアップ
-cd /home/AdminUser
+cd /home/your_username
 mv meeting-minutes-byc-dev meeting-minutes-byc-dev-backup
 
 # GitHubからクローン
@@ -219,8 +219,8 @@ GitHubリポジトリで以下を設定：
 
 1. **Settings** → **Secrets and variables** → **Actions**
 2. **New repository secret** で以下を追加：
-   - `NAS_HOST`: `192.168.68.110`
-   - `NAS_USER`: `AdminUser`
+- `NAS_HOST`: `your_nas_ip_address`
+- `NAS_USER`: `your_nas_username`
    - `NAS_SSH_KEY`: SSH秘密鍵の内容
 
 ### 3. ワークフローファイル
