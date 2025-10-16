@@ -10,6 +10,10 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# アプリケーション情報
+APP_VERSION = "1.0.0"
+APP_NAME = "Meeting Minutes BYC"
+
 class MarkdownGenerator:
     def __init__(self):
         self.transcript_dir = os.getenv('TRANSCRIPT_DIR', './transcripts')
@@ -70,8 +74,9 @@ class MarkdownGenerator:
 
 ========================================
 
-Meeting Minutes BYC システム
+{APP_NAME} システム
 生成日時: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+生成システム: {APP_NAME} v{APP_VERSION}
 """
             
             # ファイルの書き込み
@@ -96,7 +101,7 @@ Meeting Minutes BYC システム
 
 ## システム情報
 
-- **生成システム**: Meeting Minutes BYC
+- **生成システム**: {APP_NAME} v{APP_VERSION}
 - **AIモデル**: Gemini 2.5 Flash
 - **生成日時**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 

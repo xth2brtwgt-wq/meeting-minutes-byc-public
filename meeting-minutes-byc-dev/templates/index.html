@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting Minutes BYC - 音声文字起こし・議事録生成</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Meeting Minutes BYC</h1>
+            <h1>{{ app_name }} <span class="version">v{{ app_version }}</span></h1>
             <p class="subtitle">音声ファイルの文字起こしと議事録自動生成</p>
         </header>
 
@@ -21,6 +22,20 @@
                     <h3>システム準備中</h3>
                     <p>Gemini AI API Keyの設定を確認しています...</p>
                 </div>
+            </div>
+
+
+            <!-- リアルタイム進捗表示 -->
+            <div class="progress-card" id="progressCard" style="display: none;">
+                <div class="progress-header">
+                    <h3>📊 処理進捗</h3>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-message" id="progressMessage">処理を開始しています...</div>
+                <div class="progress-details" id="progressDetails"></div>
             </div>
 
 
@@ -76,6 +91,10 @@
                     <h3>✅ 処理完了</h3>
                     <div class="completion-message">
                         <p>🎉 音声の文字起こしと議事録生成が完了しました！</p>
+                        <div class="status-item">
+                            <span class="status-label">📁 処理ファイル:</span>
+                            <span class="status-value" id="resultFilename">-</span>
+                        </div>
                         <div id="emailStatus" class="status-item">
                             <span class="status-label">📧 メール送信:</span>
                             <span class="status-value" id="emailStatusValue">確認中...</span>
@@ -97,6 +116,7 @@
             <div class="system-info">
                 <h3>システム情報</h3>
                 <ul>
+                    <li>{{ app_name }}: v{{ app_version }}</li>
                     <li>Flask Version: 3.1.2</li>
                     <li>AI Model: Gemini 1.5 Flash</li>
                     <li>対応形式: WAV, MP3, M4A, FLAC, OGG, WEBM</li>

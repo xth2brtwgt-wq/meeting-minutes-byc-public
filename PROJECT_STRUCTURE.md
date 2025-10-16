@@ -16,23 +16,23 @@ nas-project/
 │       ├── setup_nas.py         # NAS環境セットアップスクリプト
 │       └── backup_data.py       # データバックアップスクリプト
 │
-├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版）
-│   ├── app.py                  # メインアプリケーション（Flask）
+├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版 v1.0.0）
+│   ├── app.py                  # メインアプリケーション（Flask + WebSocket）
 │   ├── requirements.txt        # Python依存関係
 │   ├── docker-compose.dev.yml  # Docker Compose設定
 │   ├── Dockerfile              # Dockerイメージ定義
 │   ├── .env                    # 環境変数設定
 │   ├── 📁 utils/               # ユーティリティモジュール
-│   │   ├── email_sender.py     # メール送信機能
-│   │   ├── notion_client.py    # Notion連携機能
+│   │   ├── email_sender.py     # メール送信機能（非同期処理）
+│   │   ├── notion_client.py    # Notion連携機能（番号付きリスト対応）
 │   │   └── markdown_generator.py # Markdown生成機能
 │   ├── 📁 templates/           # HTMLテンプレート
-│   │   └── index.html          # メインWebページ
+│   │   └── index.html          # メインWebページ（進捗表示対応）
 │   ├── 📁 static/              # 静的ファイル
 │   │   ├── 📁 css/
-│   │   │   └── style.css       # スタイルシート
+│   │   │   └── style.css       # スタイルシート（進捗バー対応）
 │   │   └── 📁 js/
-│   │       └── app.js          # JavaScript（リアルタイムUI）
+│   │       └── app.js          # JavaScript（WebSocket + リアルタイムUI）
 │   ├── 📁 uploads/             # アップロードされた音声ファイル
 │   └── 📁 transcripts/         # 文字起こし結果・議事録
 │
@@ -83,22 +83,23 @@ nas-project/
 ### Meeting Minutes BYC Dev アプリケーション（最新版）
 
 #### `meeting-minutes-byc-dev/`
-- **`app.py`**: Flask Webアプリケーション
+- **`app.py`**: Flask Webアプリケーション（v1.0.0）
   - 音声ファイルアップロード
-  - Gemini AI文字起こし
+  - Gemini 2.5 Flash文字起こし
   - エグゼクティブアシスタント形式の議事録生成
-  - Notion連携（アイコン付きヘッダー、番号付きリスト）
-  - Gmail SMTP自動配信
-  - リアルタイムステータス表示
+  - WebSocketによるリアルタイム進捗表示
+  - Notion連携（番号付きリスト対応）
+  - 非同期メール送信
+  - バージョン情報表示
 
 #### `meeting-minutes-byc-dev/utils/`
-- **`email_sender.py`**: メール送信機能（Gmail SMTP）
-- **`notion_client.py`**: Notion API連携（ページ作成、ブロック管理）
-- **`markdown_generator.py`**: Markdown生成機能
+- **`email_sender.py`**: メール送信機能（非同期処理、バージョン情報付き）
+- **`notion_client.py`**: Notion API連携（番号付きリスト、アイコン対応）
+- **`markdown_generator.py`**: Markdown生成機能（バージョン情報付き）
 
 #### `meeting-minutes-byc-dev/static/`
-- **`css/style.css`**: レスポンシブデザイン
-- **`js/app.js`**: リアルタイムUI更新
+- **`css/style.css`**: レスポンシブデザイン（進捗バー、バージョン表示対応）
+- **`js/app.js`**: WebSocket + リアルタイムUI更新
 
 ### Meeting Minutes アプリケーション（旧版）
 
@@ -168,16 +169,19 @@ python common/scripts/backup_data.py --action create --backup-name meeting_data
 
 ## 📋 設定管理
 
-### 環境変数（最新版）
-- `GEMINI_API_KEY`: Google Gemini AI APIキー
-- `NOTION_API_KEY`: Notion APIキー
-- `NOTION_DATABASE_ID`: NotionデータベースID
-- `EMAIL_USER`: Gmail送信者アドレス
-- `EMAIL_PASSWORD`: Gmailアプリパスワード
-- `FLASK_HOST`: アプリケーションのホスト
-- `FLASK_PORT`: アプリケーションのポート
-- `UPLOAD_FOLDER`: アップロードディレクトリ
-- `TRANSCRIPT_FOLDER`: 文字起こし結果ディレクトリ
+### 環境変数（最新版 v1.0.0）
+- `GEMINI_API_KEY`: Google Gemini AI APIキー（必須）
+- `NOTION_API_KEY`: Notion APIキー（オプション）
+- `NOTION_DATABASE_ID`: NotionデータベースID（オプション）
+- `SMTP_SERVER`: SMTPサーバー（オプション）
+- `SMTP_PORT`: SMTPポート（デフォルト: 587）
+- `SMTP_USERNAME`: SMTPユーザー名（オプション）
+- `SMTP_PASSWORD`: SMTPパスワード（オプション）
+- `FROM_EMAIL`: 送信者メールアドレス（オプション）
+- `HOST`: アプリケーションのホスト（デフォルト: 0.0.0.0）
+- `PORT`: アプリケーションのポート（デフォルト: 5003）
+- `UPLOAD_DIR`: アップロードディレクトリ（デフォルト: ./uploads）
+- `TRANSCRIPT_DIR`: 文字起こし結果ディレクトリ（デフォルト: ./transcripts）
 - `TZ`: タイムゾーン（Asia/Tokyo）
 
 ### 環境変数（旧版）

@@ -1,15 +1,18 @@
-# Meeting Minutes BYC - 音声文字起こし・議事録生成アプリケーション
+# Meeting Minutes BYC v1.0.0 - 音声文字起こし・議事録生成アプリケーション
 
 ## 📋 概要
 
-音声ファイルをアップロードして、Gemini AIを使用した自動文字起こしと議事録生成を行うWebアプリケーションです。
+音声ファイルをアップロードして、Gemini AIを使用した自動文字起こしと議事録生成を行うWebアプリケーションです。リアルタイム進捗表示、Notion連携、メール送信機能を搭載しています。
 
 ## ✨ 機能
 
 - 🎤 **音声ファイルアップロード**: WAV, MP3, M4A, FLAC, OGG, WEBM対応
-- 🤖 **AI文字起こし**: Gemini 1.5 Flashによる高精度な文字起こし
+- 🤖 **AI文字起こし**: Gemini 2.5 Flashによる高精度な文字起こし
 - 📝 **議事録自動生成**: 構造化された議事録の自動作成
-- 💾 **結果保存**: JSON形式での結果保存とダウンロード
+- 📊 **リアルタイム進捗表示**: WebSocketによる処理進捗のリアルタイム更新
+- 📄 **Notion連携**: 生成された議事録の自動Notion登録
+- 📧 **メール送信**: 処理完了通知の自動メール送信
+- 💾 **ファイル生成**: Markdown、テキスト形式での結果保存
 - 🎨 **美しいUI**: レスポンシブデザインのWebインターフェース
 
 ## 🚀 クイックスタート
@@ -18,6 +21,8 @@
 
 - Python 3.11以上
 - Gemini AI API Key ([Google AI Studio](https://makersuite.google.com/app/apikey)で取得)
+- Notion API Key (Notion連携を使用する場合)
+- SMTP設定 (メール送信を使用する場合)
 
 ### 2. 環境設定
 
@@ -28,7 +33,29 @@ cd meeting-minutes-byc-dev
 
 # 環境変数ファイルの作成
 cp env_example.txt .env
-# .envファイルを編集してGEMINI_API_KEYを設定
+# .envファイルを編集してAPI Keyを設定
+```
+
+#### 環境変数の設定例
+
+```bash
+# 必須設定
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Notion連携（オプション）
+NOTION_API_KEY=your_notion_api_key_here
+NOTION_DATABASE_ID=your_database_id_here
+
+# メール送信（オプション）
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_app_password_here
+FROM_EMAIL=your_email@gmail.com
+
+# アプリケーション設定
+PORT=5003
+FLASK_ENV=development
 ```
 
 ### 3. 開発環境での実行
@@ -54,7 +81,7 @@ python app.py
 
 ### 4. アクセス
 
-ブラウザで http://localhost:5000 にアクセス
+ブラウザで http://localhost:5003 にアクセス
 
 ## 🐳 Dockerでの実行
 
@@ -79,7 +106,7 @@ docker-compose up --build
 
 ```
 meeting-minutes-byc-dev/
-├── app.py                 # メインアプリケーション
+├── app.py                 # メインアプリケーション（WebSocket対応）
 ├── requirements.txt       # Python依存関係
 ├── Dockerfile            # Dockerイメージ定義
 ├── docker-compose.dev.yml # 開発用Docker Compose
@@ -90,7 +117,11 @@ meeting-minutes-byc-dev/
 │   ├── css/
 │   │   └── style.css     # スタイルシート
 │   └── js/
-│       └── app.js        # JavaScript
+│       └── app.js        # JavaScript（WebSocket対応）
+├── utils/
+│   ├── email_sender.py   # メール送信機能
+│   ├── notion_client.py  # Notion連携機能
+│   └── markdown_generator.py # ファイル生成機能
 ├── uploads/              # アップロードファイル（一時）
 ├── transcripts/          # 生成された議事録
 └── README.md
@@ -103,20 +134,28 @@ meeting-minutes-byc-dev/
 | 変数名 | 説明 | デフォルト値 |
 |--------|------|-------------|
 | `GEMINI_API_KEY` | Gemini AI API Key | 必須 |
+| `NOTION_API_KEY` | Notion API Key | オプション |
+| `NOTION_DATABASE_ID` | NotionデータベースID | オプション |
+| `SMTP_SERVER` | SMTPサーバー | オプション |
+| `SMTP_PORT` | SMTPポート | `587` |
+| `SMTP_USERNAME` | SMTPユーザー名 | オプション |
+| `SMTP_PASSWORD` | SMTPパスワード | オプション |
+| `FROM_EMAIL` | 送信者メールアドレス | オプション |
 | `FLASK_ENV` | Flask環境 | `development` |
 | `FLASK_DEBUG` | デバッグモード | `True` |
 | `UPLOAD_DIR` | アップロードディレクトリ | `./uploads` |
 | `TRANSCRIPT_DIR` | 議事録保存ディレクトリ | `./transcripts` |
 | `HOST` | サーバーホスト | `0.0.0.0` |
-| `PORT` | サーバーポート | `5000` |
+| `PORT` | サーバーポート | `5003` |
 
 ## 📱 使用方法
 
-1. **API Key設定**: Gemini AI API Keyを入力
+1. **会議情報入力**: 会議日時、メールアドレス、Notion登録の有無を設定
 2. **ファイルアップロード**: 音声ファイルをドラッグ&ドロップまたは選択
 3. **処理実行**: 「文字起こし・議事録生成」ボタンをクリック
-4. **結果確認**: 文字起こしと議事録を確認
-5. **ダウンロード**: 結果をJSON形式でダウンロード
+4. **進捗確認**: リアルタイムで処理進捗を確認
+5. **結果確認**: 処理完了後、結果画面で詳細を確認
+6. **自動処理**: Notion登録とメール送信が自動実行
 
 ## 🎯 対応ファイル形式
 
@@ -132,7 +171,16 @@ meeting-minutes-byc-dev/
 - `GET /`: メインページ
 - `GET /health`: ヘルスチェック
 - `POST /upload`: 音声ファイルアップロードと処理
+- `GET /api/email-status`: メール送信状況の取得
 - `GET /transcripts/<filename>`: 議事録ファイルの取得
+
+## 🔌 WebSocket イベント
+
+- `connect`: クライアント接続
+- `disconnect`: クライアント切断
+- `join_room`: ルーム参加
+- `progress_update`: 処理進捗更新
+- `email_status_update`: メール送信状況更新
 
 ## 🛠️ 開発
 

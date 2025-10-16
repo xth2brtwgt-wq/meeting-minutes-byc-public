@@ -15,6 +15,10 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# アプリケーション情報
+APP_VERSION = "1.0.0"
+APP_NAME = "Meeting Minutes BYC"
+
 class EmailSender:
     def __init__(self):
         self.smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
@@ -33,7 +37,9 @@ class EmailSender:
             msg = MIMEMultipart()
             msg['From'] = self.email_from
             msg['To'] = to_email
-            msg['Subject'] = f"議事録 - {meeting_data.get('meeting_date', '会議')}"
+            # メール件名の設定（日時フォーマットを修正）
+            meeting_date_for_subject = self._format_datetime_for_email(meeting_data.get('meeting_date', '会議'))
+            msg['Subject'] = f"議事録 - {meeting_date_for_subject}"
             
             # 処理結果の確認
             notion_sent = meeting_data.get('notion_sent', False)
@@ -52,7 +58,7 @@ class EmailSender:
 
 【基本情報】
 会議日時: {formatted_meeting_date}
-ファイル名: {filename_without_ext}
+ファイル名: {filename}
 処理日時: {self._format_datetime_for_email(meeting_data.get('timestamp', '不明'))}
 ファイルサイズ: {meeting_data.get('file_size', 0) / 1024 / 1024:.2f} MB
 
@@ -68,7 +74,7 @@ class EmailSender:
 - 議事録ファイル: meeting_minutes_{filename_without_ext}.md
 
 ---
-Meeting Minutes BYC システム
+{APP_NAME} v{APP_VERSION} で生成されました。
             """
             
             msg.attach(MIMEText(body, 'plain', 'utf-8'))

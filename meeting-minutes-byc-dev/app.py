@@ -8,10 +8,13 @@ Meeting Minutes BYC - Flask Application
 import os
 import json
 import logging
+import threading
+from queue import Queue
 from datetime import datetime
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -24,9 +27,15 @@ from utils.markdown_generator import MarkdownGenerator
 # 環境変数の読み込み
 load_dotenv()
 
+# アプリケーション情報
+APP_VERSION = "1.0.0"
+APP_NAME = "Meeting Minutes BYC"
+
 # Flask アプリケーションの初期化
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ログ設定
 logging.basicConfig(
@@ -45,6 +54,60 @@ ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a', 'flac', 'ogg', 'webm'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TRANSCRIPT_FOLDER, exist_ok=True)
 
+# メール送信の非同期処理
+email_queue = Queue()
+email_status_tracker = {}
+
+def send_email_async(email_data):
+    """バックグラウンドでメール送信"""
+    session_id = email_data.get('session_id', 'default')
+    
+    try:
+        # WebSocket更新: メール送信開始
+        emit_email_status_update(session_id, 'sending', 'メール送信中...', {'to_email': email_data['to_email']})
+        
+        email_sender = EmailSender()
+        email_sender.send_meeting_minutes(
+            email_data['to_email'],
+            email_data['meeting_data'],
+            email_data['transcript_file_path'],
+            email_data['meeting_file_path']
+        )
+        
+        # 送信成功を記録
+        email_status_tracker['last_email_status'] = True
+        email_status_tracker['last_email_error'] = ''
+        logger.info(f"メール送信完了: {email_data['to_email']}")
+        
+        # WebSocket更新: メール送信完了
+        emit_email_status_update(session_id, 'sent', 'メール送信完了', {'to_email': email_data['to_email']})
+        
+    except Exception as e:
+        # 送信失敗を記録
+        email_status_tracker['last_email_status'] = False
+        email_status_tracker['last_email_error'] = str(e)
+        logger.error(f"メール送信エラー: {str(e)}")
+        
+        # WebSocket更新: メール送信エラー
+        emit_email_status_update(session_id, 'error', f'メール送信エラー: {str(e)}', {'to_email': email_data['to_email']})
+
+def process_email_queue():
+    """メール送信キューを処理"""
+    while True:
+        try:
+            email_data = email_queue.get()
+            if email_data is None:
+                break
+            send_email_async(email_data)
+            email_queue.task_done()
+        except Exception as e:
+            logger.error(f"メールキュー処理エラー: {str(e)}")
+
+# バックグラウンドスレッドを開始
+email_thread = threading.Thread(target=process_email_queue, daemon=True)
+email_thread.start()
+logger.info("メール送信の非同期処理を開始しました")
+
 # Gemini AI の設定
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -58,6 +121,52 @@ else:
 email_sender = EmailSender()
 notion_client = NotionClient()
 markdown_generator = MarkdownGenerator()
+
+# WebSocketイベントハンドラー
+@socketio.on('connect')
+def handle_connect():
+    """クライアント接続時の処理"""
+    logger.info(f'クライアントが接続しました: {request.sid}')
+    # 自動的にデフォルトルームに参加
+    join_room('default')
+    logger.info(f'クライアント {request.sid} をデフォルトルームに参加させました')
+    emit('connected', {'message': 'WebSocket接続が確立されました'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """クライアント切断時の処理"""
+    logger.info(f'クライアントが切断しました: {request.sid}')
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    """ルーム参加処理"""
+    room = data.get('room', 'default')
+    join_room(room)
+    emit('joined_room', {'room': room, 'message': f'ルーム {room} に参加しました'})
+
+def emit_progress_update(room, step, message, progress_percent=None, data=None):
+    """進捗更新をクライアントに送信"""
+    update_data = {
+        'step': step,
+        'message': message,
+        'timestamp': datetime.now().isoformat(),
+        'progress_percent': progress_percent,
+        'data': data
+    }
+    logger.info(f'進捗更新送信準備 [{room}]: {step} - {message} - データ: {update_data}')
+    socketio.emit('progress_update', update_data, room=room)
+    logger.info(f'進捗更新送信完了 [{room}]: {step} - {message}')
+
+def emit_email_status_update(room, status, message, data=None):
+    """メール送信状況更新をクライアントに送信"""
+    update_data = {
+        'status': status,
+        'message': message,
+        'timestamp': datetime.now().isoformat(),
+        'data': data
+    }
+    socketio.emit('email_status_update', update_data, room=room)
+    logger.info(f'メール状況更新送信 [{room}]: {status} - {message}')
 
 
 def allowed_file(filename):
@@ -242,7 +351,9 @@ def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="
 @app.route('/')
 def index():
     """メインページ"""
-    return render_template('index.html')
+    return render_template('index.html', 
+                         app_name=APP_NAME, 
+                         app_version=APP_VERSION)
 
 
 @app.route('/health')
@@ -278,6 +389,9 @@ def test_notion():
 def upload_file():
     """音声ファイルのアップロードと処理"""
     try:
+        # セッションIDをルームとして使用（WebSocketのセッションIDを取得）
+        session_id = 'default'  # 全クライアントに送信
+        
         # ファイルのチェック
         if 'audio' not in request.files:
             return jsonify({'error': '音声ファイルが選択されていません'}), 400
@@ -302,11 +416,26 @@ def upload_file():
         
         logger.info(f'ファイルをアップロードしました: {filename}')
         
+        # 進捗更新: ファイルアップロード完了
+        emit_progress_update(session_id, 'file_upload', 'ファイルアップロード完了', 10, {'filename': filename})
+        
+        # 進捗更新: 文字起こし開始
+        emit_progress_update(session_id, 'transcription', '音声文字起こしを開始しています...', 20)
+        
         # 文字起こし
         transcript = transcribe_audio_with_gemini(filepath)
         
+        # 進捗更新: 文字起こし完了
+        emit_progress_update(session_id, 'transcription_complete', '音声文字起こし完了', 40, {'transcript_length': len(transcript)})
+        
+        # 進捗更新: 議事録生成開始
+        emit_progress_update(session_id, 'meeting_notes', '議事録を生成しています...', 50)
+        
         # 議事録生成
         meeting_notes = generate_meeting_notes_with_gemini(transcript, conditions, meeting_date)
+        
+        # 進捗更新: 議事録生成完了
+        emit_progress_update(session_id, 'meeting_notes_complete', '議事録生成完了', 60, {'notes_length': len(meeting_notes)})
         
         # 結果の保存
         result = {
@@ -323,40 +452,75 @@ def upload_file():
         with open(result_file, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
         
+        # 進捗更新: ファイル生成開始
+        emit_progress_update(session_id, 'file_generation', 'ファイルを生成しています...', 70)
+        
         # ファイルの生成
         md_filepath = markdown_generator.generate_meeting_markdown(result)
         transcript_filepath = markdown_generator.generate_transcript_file(result)
         
+        # 進捗更新: ファイル生成完了
+        emit_progress_update(session_id, 'file_generation_complete', 'ファイル生成完了', 80)
+        
         # Notion登録(メール送信前に実行)
         if send_to_notion:
             try:
+                # 進捗更新: Notion登録開始
+                emit_progress_update(session_id, 'notion_upload', 'Notionに登録しています...', 85)
+                
                 notion_page_id = notion_client.create_meeting_page(result)
                 result['notion_page_id'] = notion_page_id
                 result['notion_sent'] = True
                 logger.info(f'Notion登録完了: {notion_page_id}')
+                
+                # 進捗更新: Notion登録完了
+                emit_progress_update(session_id, 'notion_upload_complete', 'Notion登録完了', 90, {'page_id': notion_page_id})
             except Exception as e:
                 logger.error(f'Notion登録エラー: {str(e)}')
                 result['notion_sent'] = False
                 result['notion_error'] = str(e)
+                
+                # 進捗更新: Notion登録エラー
+                emit_progress_update(session_id, 'notion_upload_error', f'Notion登録エラー: {str(e)}', 90)
         else:
             result['notion_sent'] = False
             result['notion_page_id'] = None
         
-        # メール送付(Notion登録結果を含めて送信)
+        # メール送信を非同期で実行
         if email and email.strip():
             try:
-                logger.info(f'メール送信開始: {email}')
-                email_sender.send_meeting_minutes(email, result, transcript_filepath, md_filepath)
-                result['email_sent'] = True
+                # 進捗更新: メール送信キューに追加
+                emit_progress_update(session_id, 'email_queue', 'メール送信をキューに追加しています...', 95)
+                
+                # メール送信データをキューに追加
+                email_data = {
+                    'to_email': email,
+                    'meeting_data': result,
+                    'transcript_file_path': transcript_filepath,
+                    'meeting_file_path': md_filepath,
+                    'session_id': session_id  # WebSocket用のセッションIDを追加
+                }
+                email_queue.put(email_data)
+                
+                result['email_sent'] = True  # キューに追加された時点で成功
                 result['email_address'] = email
-                logger.info(f'メール送信完了: {email}')
+                result['email_status'] = 'queued'
+                logger.info(f'メール送信をキューに追加: {email}')
+                
+                # 進捗更新: メール送信キュー追加完了
+                emit_progress_update(session_id, 'email_queue_complete', 'メール送信をキューに追加完了', 95)
             except Exception as e:
-                logger.error(f'メール送信エラー: {str(e)}')
+                logger.error(f'メール送信キュー追加エラー: {str(e)}')
                 result['email_sent'] = False
                 result['email_error'] = str(e)
+                result['email_status'] = 'error'
+                
+                # 進捗更新: メール送信エラー
+                emit_progress_update(session_id, 'email_queue_error', f'メール送信エラー: {str(e)}', 95)
         else:
             result['email_sent'] = False
             result['email_address'] = None
+            result['email_status'] = 'not_set'
         
         # アップロードファイルの削除
         try:
@@ -365,12 +529,25 @@ def upload_file():
         except OSError as e:
             logger.warning(f'一時ファイル削除失敗: {str(e)}')
         
+        # 進捗更新: 処理完了
+        emit_progress_update(session_id, 'complete', '処理完了', 100, {'filename': filename})
+        
         logger.info(f'処理完了: {filename}')
         return jsonify(result)
         
     except Exception as e:
         logger.error(f'エラーが発生しました: {str(e)}', exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/email-status')
+def get_email_status():
+    """メール送信状況を取得"""
+    return jsonify({
+        'email_sent': email_status_tracker.get('last_email_status', None),
+        'email_error': email_status_tracker.get('last_email_error', ''),
+        'queue_size': email_queue.qsize()
+    })
 
 
 @app.route('/transcripts/<filename>')
@@ -387,5 +564,5 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     
-    logger.info(f'Starting Flask application on {host}:{port} (debug={debug})')
-    app.run(host=host, port=port, debug=debug)
+    logger.info(f'Starting Flask application with WebSocket on {host}:{port} (debug={debug})')
+    socketio.run(app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)
