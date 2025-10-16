@@ -11,13 +11,12 @@
 
 #### メインプロジェクト
 ```
-/volume1/docker/services/nas-project/
-├── meeting-minutes/
-│   ├── app/
-│   ├── templates/
-│   ├── config/
-│   └── data/ (シンボリックリンク)
-├── common/
+/home/AdminUser/meeting-minutes-byc-dev/
+├── meeting-minutes-byc-dev/  # メインアプリケーション
+│   ├── app.py
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── config/
 ├── docker/
 └── docs/
 ```
@@ -33,76 +32,154 @@
 
 ## 🚀 セットアップ手順
 
-### Step 1: ディレクトリの作成
+### Step 1: プロジェクトファイルの転送
 
 ```bash
-# SSH接続
+# ローカルからNASにプロジェクトファイルを転送
+cd /Users/Yoshi
+tar -czf nas-project.tar.gz nas-project/
+scp nas-project.tar.gz AdminUser@192.168.68.110:/home/AdminUser/
+
+# NASにSSH接続
 ssh AdminUser@192.168.68.110
 
-# ディレクトリセットアップスクリプトを実行
-cd /volume1/docker/services/
-sudo mkdir -p nas-project
-sudo chown -R AdminUser:AdminUser nas-project
-
-# データ保存ディレクトリの作成
-sudo mkdir -p /volume2/data/meeting-minutes-byc/{uploads,transcripts,logs,backups}
-sudo chown -R AdminUser:AdminUser /volume2/data/meeting-minutes-byc
-sudo chmod -R 755 /volume2/data/meeting-minutes-byc
+# プロジェクトファイルを展開
+cd /home/AdminUser
+tar -xzf nas-project.tar.gz
+mv nas-project meeting-minutes-byc-dev
 ```
 
-### Step 2: プロジェクトファイルのアップロード
+### Step 2: Docker Compose設定ファイルの作成
 
 ```bash
-# ローカルからNASにアップロード
-rsync -avz --progress /Users/Yoshi/nas-project/ AdminUser@192.168.68.110:/volume1/docker/services/nas-project/
-```
-
-### Step 3: Docker権限の修正
-
-```bash
-# SSH接続後
-sudo usermod -aG docker AdminUser
-sudo systemctl restart docker
-
-# SSH接続を一度切断して再接続
-exit
+# NASにSSH接続
 ssh AdminUser@192.168.68.110
 
-# 権限確認
-docker ps
+# プロダクション用のdocker-compose.ymlを作成
+cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+cat > docker-compose-production.yml << 'EOF'
+version: '3.8'
+
+services:
+  meeting-minutes-byc:
+    build: .
+    container_name: meeting-minutes-byc-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # データ保存パス（/volume2/data/meeting-minutes-byc配下）
+      - /volume2/data/meeting-minutes-byc/uploads:/app/uploads
+      - /volume2/data/meeting-minutes-byc/transcripts:/app/transcripts
+      - /volume2/data/meeting-minutes-byc/logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - UPLOAD_DIR=/app/uploads
+      - TRANSCRIPT_DIR=/app/transcripts
+      - WHISPER_MODEL=base
+      - WHISPER_LANGUAGE=ja
+    restart: unless-stopped
+    networks:
+      - bridge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bridge:
+    driver: bridge
+EOF
 ```
 
-### Step 4: Portainerでのスタック作成
+### Step 3: デプロイの実行
 
-1. **Portainer管理画面にアクセス**
-   - URL: http://192.168.68.110:9000
-   - ユーザー: adminuser
-   - パスワード: Tsuj!19700308
+```bash
+# 管理者権限でDocker Composeを実行
+sudo docker compose -f docker-compose-production.yml up -d --build
 
-2. **スタックの作成**
-   - "Stacks" → "Add stack" をクリック
-   - スタック名: `audio-transcription`
-   - Web editor を選択
+# コンテナの状態確認
+docker ps | grep meeting-minutes-byc
 
-3. **スタック定義の入力**
-   `docker/compose/portainer-stack.yml` の内容をコピー&ペースト
+# アプリケーションの動作確認
+curl -f http://localhost:5000/health
+```
 
-4. **デプロイ**
-   - "Deploy the stack" をクリック
+### Step 4: アクセス確認
 
+1. **アプリケーションにアクセス**
+   - URL: http://192.168.68.110:5000
+   - ヘルスチェック: http://192.168.68.110:5000/health
+
+2. **データ保存場所の確認**
+   ```bash
+   # データディレクトリの確認
+   ls -la /volume2/data/meeting-minutes-byc/
+   
+   # 音声ファイルアップロードテスト後
+   ls -la /volume2/data/meeting-minutes-byc/uploads/
+   ls -la /volume2/data/meeting-minutes-byc/transcripts/
+   ```
+
+## 📋 システム構成
+
+### 最終的な構成
+- **アプリケーション**: `meeting-minutes-byc-app` コンテナ
+- **ポート**: 5000
+- **データ保存**: `/volume2/data/meeting-minutes-byc/`
+- **プロジェクト場所**: `/home/AdminUser/meeting-minutes-byc-dev/`
+
+### データ保存場所
+```
+/volume2/data/meeting-minutes-byc/
+├── uploads/      # 音声ファイル
+├── transcripts/  # 文字起こし結果・議事録
+├── logs/         # ログファイル
+└── backups/      # バックアップ
+```
+
+## 🔧 管理コマンド
+
+### コンテナの管理
+```bash
+# コンテナの状態確認
+docker ps | grep meeting-minutes-byc
+
+# コンテナの停止
+sudo docker stop meeting-minutes-byc-app
+
+# コンテナの再起動
+sudo docker restart meeting-minutes-byc-app
+
+# ログの確認
+docker logs meeting-minutes-byc-app
+
+# コンテナの削除（再デプロイ時）
+sudo docker compose -f /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev/docker-compose-production.yml down
+```
+
+### データの管理
+```bash
+# データディレクトリの使用量確認
+du -sh /volume2/data/meeting-minutes-byc/*
+
+# 古いファイルの削除（30日以上前）
+find /volume2/data/meeting-minutes-byc -type f -mtime +30 -delete
+```
 ## 📊 設定の特徴
 
 ### 最適化された構成
-- **アプリケーション**: volume1 (高速アクセス)
-- **データ**: volume2 (大容量ストレージ)
-- **既存環境との統合**: `/volume1/docker/services/` パターンに準拠
+- **アプリケーション**: `/home/AdminUser/meeting-minutes-byc-dev/` (ユーザーディレクトリ)
+- **データ**: `/volume2/data/meeting-minutes-byc/` (大容量ストレージ)
+- **デプロイ方法**: Docker Compose (コマンドライン)
 
 ### ボリュームマウント
 ```yaml
 volumes:
-  - /volume2/data/meeting-minutes-byc/uploads:/tmp/uploads
-  - /volume2/data/meeting-minutes-byc/transcripts:/tmp/transcripts
-  - /volume1/docker/services/nas-project/meeting-minutes/config:/app/meeting-minutes/config
+  - /volume2/data/meeting-minutes-byc/uploads:/app/uploads
+  - /volume2/data/meeting-minutes-byc/transcripts:/app/transcripts
   - /volume2/data/meeting-minutes-byc/logs:/app/logs
 ```
 
@@ -111,9 +188,8 @@ volumes:
 environment:
   - FLASK_ENV=production
   - PYTHONUNBUFFERED=1
-  - PYTHONPATH=/app
-  - UPLOAD_DIR=/tmp/uploads
-  - TRANSCRIPT_DIR=/tmp/transcripts
+  - UPLOAD_DIR=/app/uploads
+  - TRANSCRIPT_DIR=/app/transcripts
   - WHISPER_MODEL=base
   - WHISPER_LANGUAGE=ja
 ```
@@ -121,20 +197,20 @@ environment:
 ## 🔍 アクセス方法
 
 - **Webアプリケーション**: http://192.168.68.110:5000
-- **Portainer管理画面**: http://192.168.68.110:9000
+- **ヘルスチェック**: http://192.168.68.110:5000/health
 
 ## 🔄 メンテナンス
 
 ### データバックアップ
 ```bash
-cd /volume1/docker/services/nas-project
-python common/scripts/backup_data.py --action create --backup-name meeting_data
+# データのバックアップ
+tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume2/data/meeting-minutes-byc/
 ```
 
 ### ログ確認
 ```bash
 # コンテナログ
-docker logs audio-transcription-app
+docker logs meeting-minutes-byc-app
 
 # アプリケーションログ
 tail -f /volume2/data/meeting-minutes-byc/logs/app.log
@@ -143,7 +219,7 @@ tail -f /volume2/data/meeting-minutes-byc/logs/app.log
 ### ディスク使用量確認
 ```bash
 # プロジェクト全体の使用量
-du -sh /volume1/docker/services/nas-project
+du -sh /home/AdminUser/meeting-minutes-byc-dev
 du -sh /volume2/data/meeting-minutes-byc
 
 # 詳細な使用量
@@ -156,12 +232,12 @@ du -sh /volume2/data/meeting-minutes-byc/*
 
 1. **権限エラー**
    ```bash
-   sudo chown -R AdminUser:AdminUser /volume1/docker/services/nas-project
-   sudo chown -R AdminUser:AdminUser /volume2/data/meeting-minutes-byc
+   sudo chown -R AdminUser:admin /home/AdminUser/meeting-minutes-byc-dev
+   sudo chown -R AdminUser:admin /volume2/data/meeting-minutes-byc
    ```
 
 2. **ポート競合**
-   - 5000番ポートが使用中の場合、`portainer-stack.yml`でポート番号を変更
+   - 5000番ポートが使用中の場合、`docker-compose-production.yml`でポート番号を変更
 
 3. **ディスク容量不足**
    - volume2の使用量を確認: `df -h /volume2`
@@ -169,8 +245,11 @@ du -sh /volume2/data/meeting-minutes-byc/*
 
 ### ログ確認
 ```bash
-# Portainerでのログ確認
-# Portainer管理画面 → Containers → audio-transcription-app → Logs
+# コンテナの状態確認
+docker ps | grep meeting-minutes-byc
+
+# コンテナログの確認
+docker logs meeting-minutes-byc-app
 
 # システムログ
 journalctl -u docker -f
