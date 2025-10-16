@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Minutes BYC - 音声文字起こし・議事録生成</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ app_name }} <span class="version">v{{ app_version }}</span></h1>
+            <p class="subtitle">音声ファイルの文字起こしと議事録自動生成</p>
+        </header>
+
+        <main>
+            <!-- ステータス表示 -->
+            <div class="status-card" id="statusCard" style="display: none;">
+                <div class="status-icon">🔧</div>
+                <div class="status-content">
+                    <h3>システム準備中</h3>
+                    <p>Gemini AI API Keyの設定を確認しています...</p>
+                </div>
+            </div>
+
+
+            <!-- リアルタイム進捗表示 -->
+            <div class="progress-card" id="progressCard" style="display: none;">
+                <div class="progress-header">
+                    <h3>📊 処理進捗</h3>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-message" id="progressMessage">処理を開始しています...</div>
+                <div class="progress-details" id="progressDetails"></div>
+            </div>
+
+
+            <!-- ファイルアップロード -->
+            <div class="card" id="uploadCard">
+                <div class="card-header">
+                    <h2>🎤 音声ファイルアップロード</h2>
+                    <button id="openDictionary" class="btn btn-outline-secondary">📚 辞書管理</button>
+                </div>
+                
+                <!-- 会議情報入力 -->
+                <div class="form-section">
+                    <h3>📅 会議情報</h3>
+                    <div class="form-group">
+                        <label for="meetingDate">会議日時: <span style="color: red;">*</span></label>
+                        <input type="datetime-local" id="meetingDate" name="meeting_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="conditions">議事録作成条件 (任意):</label>
+                        <textarea id="conditions" name="conditions" rows="3" placeholder="例: 技術的な詳細を重視、決定事項を明確に、アクションアイテムを具体的に"></textarea>
+                    </div>
+                </div>
+
+                <!-- 配信設定 -->
+                <div class="form-section">
+                    <h3>📧 配信設定</h3>
+                    <div class="form-group">
+                        <label for="email">メールアドレス (任意):</label>
+                        <input type="email" id="email" name="email" value="mipatago.netsetting@gmail.com" placeholder="議事録をメールで送信">
+                    </div>
+                </div>
+
+
+                <!-- ファイル選択 -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>音声ファイルをドラッグ&ドロップまたはクリックして選択</p>
+                    <input type="file" id="audioFile" accept="audio/*" style="display: none;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('audioFile').click()">ファイルを選択</button>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <h4>選択されたファイル:</h4>
+                    <p id="fileName"></p>
+                    <p id="fileSize"></p>
+                    <button id="processFile" class="btn btn-primary">文字起こし・議事録生成</button>
+                </div>
+            </div>
+
+            <!-- 辞書管理 -->
+            <div class="card" id="dictionaryCard" style="display: none;">
+                <h2>📚 カスタム辞書管理</h2>
+                <p class="description">音声文字起こしの精度向上のための辞書を管理できます。</p>
+                
+                <!-- 辞書統計 -->
+                <div class="dictionary-stats" id="dictionaryStats">
+                    <div class="stat-item">
+                        <span class="stat-label">総カテゴリ数:</span>
+                        <span class="stat-value" id="totalCategories">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">総エントリ数:</span>
+                        <span class="stat-value" id="totalEntries">-</span>
+                    </div>
+                </div>
+
+                <!-- 検索機能 -->
+                <div class="dictionary-search">
+                    <input type="text" id="dictionarySearch" placeholder="辞書を検索..." class="form-control">
+                    <button id="searchDictionary" class="btn btn-secondary">検索</button>
+                </div>
+
+                <!-- 検索結果 -->
+                <div id="searchResults" class="search-results" style="display: none;">
+                    <h3>検索結果</h3>
+                    <div id="searchResultsList"></div>
+                </div>
+
+                <!-- 辞書エントリ追加 -->
+                <div class="dictionary-add">
+                    <h3>新しいエントリを追加</h3>
+                    <div class="form-group">
+                        <label for="entryCategory">カテゴリ:</label>
+                        <select id="entryCategory" class="form-control">
+                            <option value="company_names">会社名・組織名</option>
+                            <option value="technical_terms">技術用語</option>
+                            <option value="person_names">人名</option>
+                            <option value="common_phrases">よく使われるフレーズ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryJapanese">日本語表記:</label>
+                        <input type="text" id="entryJapanese" class="form-control" placeholder="例: グリーン">
+                    </div>
+                    <div class="form-group">
+                        <label for="entryCorrect">正しい表記:</label>
+                        <input type="text" id="entryCorrect" class="form-control" placeholder="例: Ugreen">
+                    </div>
+                    <button id="addDictionaryEntry" class="btn btn-primary">追加</button>
+                </div>
+
+                <!-- 辞書一覧 -->
+                <div class="dictionary-list">
+                    <h3>辞書一覧</h3>
+                    <div id="dictionaryList"></div>
+                </div>
+
+                <div class="dictionary-actions">
+                    <button id="closeDictionary" class="btn btn-secondary">閉じる</button>
+                </div>
+            </div>
+
+            <!-- 結果表示 -->
+            <div class="card" id="resultCard" style="display: none;">
+                <h2>📝 処理結果</h2>
+                
+                <!-- 処理結果サマリー -->
+                <div class="result-summary" id="resultSummary">
+                    <h3>✅ 処理完了</h3>
+                    <div class="completion-message">
+                        <p>🎉 音声の文字起こしと議事録生成が完了しました！</p>
+                        <div class="status-item">
+                            <span class="status-label">📁 処理ファイル:</span>
+                            <span class="status-value" id="resultFilename">-</span>
+                        </div>
+                        <div id="emailStatus" class="status-item">
+                            <span class="status-label">📧 メール送信:</span>
+                            <span class="status-value" id="emailStatusValue">確認中...</span>
+                        </div>
+                        <div id="notionStatus" class="status-item">
+                            <span class="status-label">📄 Notion登録:</span>
+                            <span class="status-value" id="notionStatusValue">確認中...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn btn-primary" onclick="backToTop()">トップ画面に戻る</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="system-info">
+                <h3>システム情報</h3>
+                <ul>
+                    <li>{{ app_name }}: v{{ app_version }}</li>
+                    <li>Flask Version: 3.1.2</li>
+                    <li>AI Model: Gemini 1.5 Flash</li>
+                    <li>対応形式: WAV, MP3, M4A, FLAC, OGG, WEBM</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
