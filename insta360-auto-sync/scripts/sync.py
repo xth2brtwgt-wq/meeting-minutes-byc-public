@@ -56,6 +56,7 @@ class Insta360Sync:
         self.file_patterns = self.app_config.get('sync', {}).get('file_patterns', [
             'VID_*.mp4', '*.insv', '*.insp', '*.jpg', '*.dng', '*.raw'
         ])
+        self.delete_source = self.app_config.get('sync', {}).get('delete_source', True)
         
         # メール設定
         self.to_email = self.env_config.get('email', {}).get('to_email', '')
@@ -137,23 +138,32 @@ class Insta360Sync:
                 copy_success, copy_message = file_manager.copy_file(file_info)
                 
                 if copy_success:
-                    # ソースファイルを削除
-                    delete_success, delete_message = file_manager.delete_source_file(file_info)
-                    
-                    if delete_success:
+                    if self.delete_source:
+                        # ソースファイルを削除
+                        delete_success, delete_message = file_manager.delete_source_file(file_info)
+                        
+                        if delete_success:
+                            success_list.append({
+                                'filename': file_info['filename'],
+                                'size': file_info['size'],
+                                'message': '転送完了（元ファイル削除）'
+                            })
+                            self.logger.info(f"ファイル転送完了: {file_info['filename']}")
+                        else:
+                            failed_list.append({
+                                'filename': file_info['filename'],
+                                'size': file_info['size'],
+                                'error': f"削除失敗: {delete_message}"
+                            })
+                            self.logger.error(f"ソースファイル削除失敗: {file_info['filename']} - {delete_message}")
+                    else:
+                        # 削除をスキップ
                         success_list.append({
                             'filename': file_info['filename'],
                             'size': file_info['size'],
-                            'message': '転送完了'
+                            'message': 'コピー完了（元ファイル保持）'
                         })
-                        self.logger.info(f"ファイル転送完了: {file_info['filename']}")
-                    else:
-                        failed_list.append({
-                            'filename': file_info['filename'],
-                            'size': file_info['size'],
-                            'error': f"削除失敗: {delete_message}"
-                        })
-                        self.logger.error(f"ソースファイル削除失敗: {file_info['filename']} - {delete_message}")
+                        self.logger.info(f"ファイルコピー完了: {file_info['filename']} （元ファイル保持）")
                 else:
                     failed_list.append({
                         'filename': file_info['filename'],
