@@ -9,7 +9,9 @@
         "グリーン": "Ugreen",
         "ユーグリーン": "Ugreen",
         "ディーエックスピー": "DXP",
-        "ディーエックスピー2800": "DXP2800"
+        "ディーエックスピー2800": "DXP2800",
+        "サミー": "Sammy",
+        "ピコ": "Pico"
       }
     },
     "technical_terms": {
@@ -25,21 +27,22 @@
         "エスエスエイチ": "SSH",
         "エスシーピー": "SCP",
         "ジット": "Git",
-        "ギットハブ": "GitHub"
+        "ギットハブ": "GitHub",
+        "ドクターサム": "Dr.Sum",
+        "デブ": "DEV"
       }
     },
     "person_names": {
       "description": "人名",
       "entries": {
-        "よし": "Yoshi",
-        "よしさん": "Yoshi"
+        "さとり": "佐鳥",
+        "よしうみ": "吉海"
       }
     },
     "common_phrases": {
       "description": "よく使われるフレーズ",
       "entries": {
         "よろしくお願いします": "よろしくお願いします",
-        "ありがとうございます": "ありがとうございます",
         "失礼します": "失礼します"
       }
     }
@@ -47,6 +50,11 @@
   "settings": {
     "case_sensitive": false,
     "partial_match": true,
-    "priority_order": ["company_names", "technical_terms", "person_names", "common_phrases"]
+    "priority_order": [
+      "company_names",
+      "technical_terms",
+      "person_names",
+      "common_phrases"
+    ]
   }
 }

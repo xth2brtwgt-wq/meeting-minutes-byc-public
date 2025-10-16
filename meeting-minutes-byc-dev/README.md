@@ -1,6 +1,6 @@
 # Meeting Minutes BYC - 音声文字起こし・議事録生成アプリケーション
 
-**バージョン**: v1.0.1 (config/version.pyで一元管理)
+**バージョン**: v1.0.2 (config/version.pyで一元管理)
 
 ## 📋 概要
 
@@ -15,6 +15,7 @@
 - 📄 **Notion連携**: 生成された議事録の自動Notion登録
 - 📧 **メール送信**: 処理完了通知の自動メール送信
 - 💾 **ファイル生成**: Markdown、テキスト形式での結果保存
+- 📚 **カスタム辞書機能**: 音声文字起こし精度向上のための辞書管理システム
 - 🎨 **美しいUI**: レスポンシブデザインのWebインターフェース
 
 ## 🚀 クイックスタート
@@ -123,7 +124,11 @@ meeting-minutes-byc-dev/
 ├── utils/
 │   ├── email_sender.py   # メール送信機能
 │   ├── notion_client.py  # Notion連携機能
-│   └── markdown_generator.py # ファイル生成機能
+│   ├── markdown_generator.py # ファイル生成機能
+│   └── dictionary_manager.py # カスタム辞書管理機能
+├── config/
+│   ├── version.py        # バージョン情報管理
+│   └── custom_dictionary.json # カスタム辞書データ
 ├── uploads/              # アップロードファイル（一時）
 ├── transcripts/          # 生成された議事録
 └── README.md
@@ -153,11 +158,12 @@ meeting-minutes-byc-dev/
 ## 📱 使用方法
 
 1. **会議情報入力**: 会議日時、メールアドレス、Notion登録の有無を設定
-2. **ファイルアップロード**: 音声ファイルをドラッグ&ドロップまたは選択
-3. **処理実行**: 「文字起こし・議事録生成」ボタンをクリック
-4. **進捗確認**: リアルタイムで処理進捗を確認
-5. **結果確認**: 処理完了後、結果画面で詳細を確認
-6. **自動処理**: Notion登録とメール送信が自動実行
+2. **辞書管理** (オプション): 「📚 辞書管理」ボタンで専門用語や固有名詞を登録
+3. **ファイルアップロード**: 音声ファイルをドラッグ&ドロップまたは選択
+4. **処理実行**: 「文字起こし・議事録生成」ボタンをクリック
+5. **進捗確認**: リアルタイムで処理進捗を確認
+6. **結果確認**: 処理完了後、結果画面で詳細を確認
+7. **自動処理**: Notion登録とメール送信が自動実行
 
 ## 🎯 対応ファイル形式
 
@@ -174,6 +180,10 @@ meeting-minutes-byc-dev/
 - `GET /health`: ヘルスチェック
 - `POST /upload`: 音声ファイルアップロードと処理
 - `GET /api/email-status`: メール送信状況の取得
+- `GET /api/dictionary`: 辞書データの取得
+- `GET /api/dictionary/search`: 辞書検索
+- `POST /api/dictionary/entry`: 辞書エントリの追加
+- `DELETE /api/dictionary/entry`: 辞書エントリの削除
 - `GET /transcripts/<filename>`: 議事録ファイルの取得
 
 ## 🔌 WebSocket イベント
