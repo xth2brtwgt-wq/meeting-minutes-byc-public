@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  insta360-auto-sync:
+    build: .
+    container_name: insta360-auto-sync
+    volumes:
+      # ログディレクトリ
+      - ./logs:/app/logs
+      # 設定ディレクトリ
+      - ./config:/app/config
+      # 転送先ディレクトリ（NAS側）
+      - /volume2/data/insta360:/volume2/data/insta360
+      # Mac共有フォルダのマウントポイント
+      - /mnt/mac-share:/source
+    environment:
+      # アプリケーション設定
+      - TZ=Asia/Tokyo
+      - DEBUG=false
+      
+      # Mac接続設定
+      - MAC_IP=${MAC_IP:-192.168.68.69}
+      - MAC_USERNAME=${MAC_USERNAME:-Yoshi}
+      - MAC_PASSWORD=${MAC_PASSWORD}
+      - MAC_SHARE=${MAC_SHARE:-Yoshi}
+      
+      # 同期設定
+      - SOURCE_PATH=/source
+      - DESTINATION_PATH=/volume2/data/insta360
+      - SYNC_SCHEDULE=${SYNC_SCHEDULE:-0 0 * * *}
+      
+      # メール設定
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - TO_EMAIL=${TO_EMAIL}
+    restart: unless-stopped
+    labels:
+      - "com.docker.compose.project=insta360-auto-sync"
+      - "com.docker.compose.service=insta360-auto-sync"
+      - "traefik.enable=false"
+    # ネットワーク設定
+    networks:
+      - default
+    # ログ設定
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: insta360-auto-sync-network
+    driver: bridge

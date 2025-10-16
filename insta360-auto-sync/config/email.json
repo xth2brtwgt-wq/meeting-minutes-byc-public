@@ -1,0 +1,15 @@
+{
+  "smtp": {
+    "server": "smtp.gmail.com",
+    "port": 587,
+    "user": "",
+    "password": "",
+    "from": ""
+  },
+  "notification": {
+    "to_email": "",
+    "send_success": true,
+    "send_error": true,
+    "send_no_files": false
+  }
+}
