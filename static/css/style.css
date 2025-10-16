@@ -526,36 +526,346 @@ footer {
 }
 
 /* レスポンシブデザイン */
+
+/* タブレット (768px - 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        max-width: 100%;
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .dictionary-entries {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+/* モバイル (481px - 768px) */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 12px;
     }
     
     header h1 {
         font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
     }
     
     .card {
-        padding: 20px;
+        padding: 20px 15px;
+        margin-bottom: 20px;
+    }
+    
+    .card h2 {
+        font-size: 1.5rem;
     }
     
     .status-card {
         flex-direction: column;
         text-align: center;
+        padding: 20px;
     }
     
     .status-icon {
         margin-right: 0;
         margin-bottom: 15px;
+        font-size: 2.5rem;
     }
     
     .result-actions {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    .result-actions .btn {
+        width: 100%;
     }
     
     .system-info ul {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .upload-area {
+        padding: 30px 15px;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+    }
+    
+    .upload-area p {
+        font-size: 1rem;
+    }
+    
+    /* フォーム要素をタッチフレンドリーに */
+    .btn {
+        padding: 14px 24px;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px; /* iOSのズーム防止 */
+        min-height: 48px;
+    }
+    
+    /* タブ */
+    .result-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-btn {
+        white-space: nowrap;
+        padding: 12px 20px;
+        min-height: 48px;
+    }
+    
+    /* 辞書管理 */
+    .dictionary-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .dictionary-search {
+        flex-direction: column;
+    }
+    
+    .dictionary-search input,
+    .dictionary-search button {
+        width: 100%;
+    }
+    
+    .dictionary-entries {
+        grid-template-columns: 1fr;
+    }
+    
+    .dictionary-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .dictionary-entry-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    /* カードヘッダー */
+    .card-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .card-header .btn {
+        width: 100%;
+    }
+    
+    /* 進捗表示 */
+    .progress-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .progress-percentage {
+        align-self: flex-end;
+    }
+}
+
+/* 小型モバイル (max-width: 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header {
+        margin-bottom: 25px;
+    }
+    
+    header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .version {
+        display: block;
+        margin-left: 0;
+        margin-top: 8px;
+        font-size: 0.7em;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .card {
+        padding: 15px 12px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+    }
+    
+    .card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+    }
+    
+    .form-section {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .form-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .upload-area {
+        padding: 25px 12px;
+    }
+    
+    .upload-icon {
+        font-size: 2.5rem;
+    }
+    
+    .upload-area p {
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+    
+    /* ステータスカード */
+    .status-card {
+        padding: 15px;
+    }
+    
+    .status-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .status-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .status-content p {
+        font-size: 0.9rem;
+    }
+    
+    /* 進捗カード */
+    .progress-card {
+        padding: 15px;
+    }
+    
+    .progress-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .progress-percentage {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+    }
+    
+    .progress-message {
+        font-size: 0.95rem;
+    }
+    
+    .progress-details {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+    
+    /* フッター */
+    footer {
+        margin-top: 30px;
+    }
+    
+    .system-info {
+        padding: 20px 15px;
+    }
+    
+    .system-info h3 {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+    }
+    
+    .system-info li {
+        padding: 8px 15px;
+        font-size: 0.85rem;
+    }
+    
+    /* 辞書管理 */
+    .dictionary-add {
+        padding: 15px;
+    }
+    
+    .dictionary-add h3 {
+        font-size: 1.1rem;
+    }
+    
+    .dictionary-category {
+        padding: 12px;
+    }
+    
+    .dictionary-category h4 {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .search-result-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .search-result-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* 横向き対応 */
+@media (max-width: 768px) and (orientation: landscape) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+    
+    .upload-area {
+        padding: 20px 15px;
+    }
+    
+    .upload-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
     }
 }
 
@@ -796,4 +1106,127 @@ footer {
         min-width: auto;
         margin-bottom: 5px;
     }
+}
+
+/* ユーティリティクラス */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block;
+    }
+    
+    .desktop-only {
+        display: none;
+    }
+}
+
+/* タッチデバイス最適化 */
+@media (hover: none) and (pointer: coarse) {
+    /* タッチデバイス用の大きなタップターゲット */
+    .btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    
+    .btn-sm {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* ホバーエフェクトの削除（タッチデバイス） */
+    .card:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+}
+
+/* 高解像度ディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* プリントスタイル */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .btn,
+    .upload-area,
+    .dictionary-actions,
+    .result-actions {
+        display: none;
+    }
+    
+    footer {
+        display: none;
+    }
+}
+
+/* スクロールバーのスタイリング（Webkit） */
+@media (min-width: 769px) {
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+}
+
+/* フォーカス表示の改善（アクセシビリティ） */
+*:focus-visible {
+    outline: 3px solid #74b9ff;
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+.btn:focus-visible {
+    outline: 3px solid #74b9ff;
+    outline-offset: 2px;
+}
+
+/* ダークモード対応の準備 */
+@media (prefers-color-scheme: dark) {
+    /* 将来のダークモード実装のための基盤 */
+    /* 現在は適用されません */
 }
