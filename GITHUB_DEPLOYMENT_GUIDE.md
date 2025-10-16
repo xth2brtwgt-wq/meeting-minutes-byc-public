@@ -104,13 +104,13 @@ git --version
 ```bash
 # 既存のプロジェクトをバックアップ
 cd /home/AdminUser
-mv meeting-minutes-byc-dev meeting-minutes-byc-dev-backup
+mv meeting-minutes-byc meeting-minutes-byc-backup
 
 # GitHubからクローン
-git clone https://github.com/yourusername/meeting-minutes-byc.git meeting-minutes-byc-dev
+git clone https://github.com/yourusername/meeting-minutes-byc.git meeting-minutes-byc
 
 # プロジェクトディレクトリに移動
-cd meeting-minutes-byc-dev/meeting-minutes-byc-dev
+cd meeting-minutes-byc/meeting-minutes-byc
 ```
 
 ### 3. 環境変数ファイルの設定
@@ -142,7 +142,7 @@ curl -f http://localhost:5000/health
 
 ```bash
 # NAS環境で実行
-cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+cd /home/AdminUser/meeting-minutes-byc/meeting-minutes-byc
 
 # 最新のコードを取得
 git pull origin main
@@ -250,7 +250,7 @@ jobs:
         username: ${{ secrets.NAS_USER }}
         key: ${{ secrets.NAS_SSH_KEY }}
         script: |
-          cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+          cd /home/AdminUser/meeting-minutes-byc/meeting-minutes-byc
           git pull origin main
           sudo docker compose -f docker-compose.dev.yml down
           sudo docker compose -f docker-compose.dev.yml build --no-cache
@@ -293,7 +293,7 @@ sudo docker compose -f docker-compose.dev.yml ps
 sudo docker compose -f docker-compose.dev.yml logs --tail=20
 
 # コンテナ内での確認
-sudo docker exec -it meeting-minutes-byc-dev bash
+sudo docker exec -it meeting-minutes-byc bash
 ```
 
 ### ファイル権限の問題
@@ -344,7 +344,7 @@ http://192.168.68.110:5000
 
 ```bash
 # 定期的なバックアップ
-cp -r /home/AdminUser/meeting-minutes-byc-dev /home/AdminUser/backup-$(date +%Y%m%d)
+cp -r /home/AdminUser/meeting-minutes-byc /home/AdminUser/backup-$(date +%Y%m%d)
 ```
 
 ## 📚 関連ドキュメント

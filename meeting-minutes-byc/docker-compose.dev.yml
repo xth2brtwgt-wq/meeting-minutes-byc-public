@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  meeting-minutes-byc-dev:
+  meeting-minutes-byc:
     build: .
-    container_name: meeting-minutes-byc-dev
+    container_name: meeting-minutes-byc
     ports:
       - "5000:5000"
     volumes:
@@ -19,9 +19,9 @@ services:
       - TZ=Asia/Tokyo
     restart: unless-stopped
     labels:
-      - "com.docker.compose.project=meeting-minutes-byc-dev"
-      - "com.docker.compose.service=meeting-minutes-byc-dev"
+      - "com.docker.compose.project=meeting-minutes-byc"
+      - "com.docker.compose.service=meeting-minutes-byc"
 
 networks:
   default:
-    name: meeting-minutes-byc-dev-network
+    name: meeting-minutes-byc-network

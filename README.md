@@ -59,8 +59,8 @@
 ssh AdminUser@192.168.68.110
 
 # プロジェクトディレクトリを作成
-mkdir -p /home/AdminUser/meeting-minutes-byc-dev
-cd /home/AdminUser/meeting-minutes-byc-dev
+mkdir -p /home/AdminUser/meeting-minutes-byc
+cd /home/AdminUser/meeting-minutes-byc
 
 # 設定ファイルを作成（詳細はクイックスタートガイドを参照）
 # docker-compose.yml, Dockerfile, requirements.txt, .env など
@@ -79,7 +79,7 @@ curl http://192.168.68.110:5002/health
 ## 📁 プロジェクト構造
 
 ```
-meeting-minutes-byc-dev/
+meeting-minutes-byc/
 ├── app.py                    # メインアプリケーション
 ├── requirements.txt          # Python依存関係
 ├── docker-compose.yml        # Docker Compose設定
@@ -144,13 +144,13 @@ sudo docker compose restart
 ### デバッグ
 ```bash
 # コンテナ内でコマンド実行
-sudo docker exec -it meeting-minutes-byc-dev-app bash
+sudo docker exec -it meeting-minutes-byc-app bash
 
 # 環境変数確認
-sudo docker exec -it meeting-minutes-byc-dev-app env
+sudo docker exec -it meeting-minutes-byc-app env
 
 # ヘルスチェック
-sudo docker exec -it meeting-minutes-byc-dev-app curl localhost:5000/health
+sudo docker exec -it meeting-minutes-byc-app curl localhost:5000/health
 ```
 
 ## 🔍 トラブルシューティング
@@ -169,7 +169,7 @@ sudo docker exec -it meeting-minutes-byc-dev-app curl localhost:5000/health
 
 3. **API キーエラー**
    ```bash
-   sudo docker exec -it meeting-minutes-byc-dev-app env | grep -E "(GEMINI|NOTION|EMAIL)"
+   sudo docker exec -it meeting-minutes-byc-app env | grep -E "(GEMINI|NOTION|EMAIL)"
    ```
 
 詳細な解決方法は [トラブルシューティングガイド](TROUBLESHOOTING_GUIDE.md) を参照してください。
@@ -191,7 +191,7 @@ sudo docker compose logs | grep -i error | tail -10
 ### バックアップ
 ```bash
 # データのバックアップ
-tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-minutes-byc-dev/
+tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-minutes-byc/
 ```
 
 ## 🔒 セキュリティ
@@ -259,7 +259,7 @@ tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-min
 2. **手動デプロイ**:
    ```bash
    # NAS環境で実行
-   cd /home/AdminUser/meeting-minutes-byc-dev
+   cd /home/AdminUser/meeting-minutes-byc
    ./deploy.sh
    ```
 

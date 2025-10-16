@@ -63,7 +63,7 @@ echo ""
 
 # 主要なファイルとディレクトリのみ表示
 echo "📁 主要ディレクトリ:"
-ls -la | grep "^d" | grep -E "(meeting-minutes-byc-dev|common|docker|docs|scripts)" | awk '{print "   " $9}'
+ls -la | grep "^d" | grep -E "(meeting-minutes-byc|common|docker|docs|scripts)" | awk '{print "   " $9}'
 
 echo ""
 echo "📄 主要ファイル:"
@@ -81,7 +81,7 @@ echo "   - バックアップディレクトリ: $BACKUP_DIR"
 echo "   - 必要に応じて復元可能です"
 echo ""
 echo "🎯 現在のプロジェクト構成:"
-echo "   - meeting-minutes-byc-dev/ (メインアプリケーション)"
+echo "   - meeting-minutes-byc/ (メインアプリケーション)"
 echo "   - 各種ドキュメント (*.md)"
 echo "   - common/ (共通ユーティリティ)"
 echo "   - docker/ (Docker設定)"

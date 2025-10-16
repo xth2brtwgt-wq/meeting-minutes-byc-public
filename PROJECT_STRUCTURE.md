@@ -16,7 +16,7 @@ nas-project/
 │       ├── setup_nas.py         # NAS環境セットアップスクリプト
 │       └── backup_data.py       # データバックアップスクリプト
 │
-├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版 v1.0.1 - config/version.pyで管理）
+├── 📁 meeting-minutes-byc/  # 議事録作成アプリケーション（最新版 v1.0.1 - config/version.pyで管理）
 │   ├── app.py                  # メインアプリケーション（Flask + WebSocket）
 │   ├── requirements.txt        # Python依存関係
 │   ├── docker-compose.dev.yml  # Docker Compose設定
@@ -82,7 +82,7 @@ nas-project/
 
 ### Meeting Minutes BYC Dev アプリケーション（最新版）
 
-#### `meeting-minutes-byc-dev/`
+#### `meeting-minutes-byc/`
 - **`app.py`**: Flask Webアプリケーション（v1.0.1 - config/version.pyで管理）
   - 音声ファイルアップロード
   - Gemini 2.5 Flash文字起こし
@@ -92,12 +92,12 @@ nas-project/
   - 非同期メール送信
   - バージョン情報表示
 
-#### `meeting-minutes-byc-dev/utils/`
+#### `meeting-minutes-byc/utils/`
 - **`email_sender.py`**: メール送信機能（非同期処理、バージョン情報付き）
 - **`notion_client.py`**: Notion API連携（番号付きリスト、アイコン対応）
 - **`markdown_generator.py`**: Markdown生成機能（バージョン情報付き）
 
-#### `meeting-minutes-byc-dev/static/`
+#### `meeting-minutes-byc/static/`
 - **`css/style.css`**: レスポンシブデザイン（進捗バー、バージョン表示対応）
 - **`js/app.js`**: WebSocket + リアルタイムUI更新
 
@@ -121,14 +121,14 @@ nas-project/
 
 ### 1. ローカル開発（最新版）
 ```bash
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 pip install -r requirements.txt
 python app.py
 ```
 
 ### 2. Docker実行（最新版）
 ```bash
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 sudo docker compose -f docker-compose.dev.yml up -d
 ```
 

@@ -70,7 +70,7 @@ CMD ["python", "app.py"]
 
 #### 問題
 ```
-scp: dest open "/home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml": No such file or directory
+scp: dest open "/home/AdminUser/meeting-minutes-byc/docker-compose.yml": No such file or directory
 ```
 
 #### 原因
@@ -81,13 +81,13 @@ scp: dest open "/home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml": No 
 #### 解決方法
 ```bash
 # 1. リモートディレクトリを作成
-ssh AdminUser@192.168.68.110 'mkdir -p /home/AdminUser/meeting-minutes-byc-dev'
+ssh AdminUser@192.168.68.110 'mkdir -p /home/AdminUser/meeting-minutes-byc'
 
 # 2. 権限を確認
 ssh AdminUser@192.168.68.110 'ls -la /home/AdminUser/'
 
 # 3. ファイルを直接作成（scpの代替）
-ssh AdminUser@192.168.68.110 'cat > /home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml << "EOF"
+ssh AdminUser@192.168.68.110 'cat > /home/AdminUser/meeting-minutes-byc/docker-compose.yml << "EOF"
 # YAML content here
 EOF'
 ```
@@ -107,13 +107,13 @@ mkdir: cannot create directory '/var/services': Permission denied
 #### 解決方法
 ```bash
 # 正しいディレクトリを使用
-mkdir -p /home/AdminUser/meeting-minutes-byc-dev
+mkdir -p /home/AdminUser/meeting-minutes-byc
 
 # 権限を確認
 ls -la /home/AdminUser/
 
 # 必要に応じて権限を変更
-chmod 755 /home/AdminUser/meeting-minutes-byc-dev
+chmod 755 /home/AdminUser/meeting-minutes-byc
 ```
 
 ## コンテナ関連の問題
@@ -122,7 +122,7 @@ chmod 755 /home/AdminUser/meeting-minutes-byc-dev
 
 #### 問題
 ```
-Container meeting-minutes-byc-dev-app exited with code 1
+Container meeting-minutes-byc-app exited with code 1
 ```
 
 #### 原因
@@ -136,13 +136,13 @@ Container meeting-minutes-byc-dev-app exited with code 1
 sudo docker compose logs
 
 # 2. コンテナ内でデバッグ
-sudo docker exec -it meeting-minutes-byc-dev-app bash
+sudo docker exec -it meeting-minutes-byc-app bash
 
 # 3. 環境変数を確認
-sudo docker exec -it meeting-minutes-byc-dev-app env
+sudo docker exec -it meeting-minutes-byc-app env
 
 # 4. アプリケーションファイルを確認
-sudo docker exec -it meeting-minutes-byc-dev-app ls -la /app/
+sudo docker exec -it meeting-minutes-byc-app ls -la /app/
 ```
 
 ### 6. ポート接続エラー
@@ -163,10 +163,10 @@ curl: (7) Failed to connect to 192.168.68.110 port 5002 after 0 ms: Couldn't con
 sudo docker ps -a
 
 # 2. ポートマッピングを確認
-sudo docker port meeting-minutes-byc-dev-app
+sudo docker port meeting-minutes-byc-app
 
 # 3. コンテナ内からテスト
-sudo docker exec -it meeting-minutes-byc-dev-app curl localhost:5000/health
+sudo docker exec -it meeting-minutes-byc-app curl localhost:5000/health
 
 # 4. ネットワーク設定を確認
 sudo netstat -tlnp | grep 5002
@@ -187,11 +187,11 @@ Error response from daemon: invalid mount config for type "bind"
 #### 解決方法
 ```bash
 # 1. マウント先ディレクトリを作成
-sudo mkdir -p /volume1/data/meeting-minutes-byc-dev/uploads
-sudo mkdir -p /volume1/data/meeting-minutes-byc-dev/transcripts
+sudo mkdir -p /volume1/data/meeting-minutes-byc/uploads
+sudo mkdir -p /volume1/data/meeting-minutes-byc/transcripts
 
 # 2. 権限を設定
-sudo chown -R AdminUser:admin /volume1/data/meeting-minutes-byc-dev/
+sudo chown -R AdminUser:admin /volume1/data/meeting-minutes-byc/
 
 # 3. Docker Composeを再起動
 sudo docker compose down
@@ -218,7 +218,7 @@ sudo docker compose up -d
 cat .env
 
 # 2. 環境変数を確認
-sudo docker exec -it meeting-minutes-byc-dev-app env | grep GEMINI
+sudo docker exec -it meeting-minutes-byc-app env | grep GEMINI
 
 # 3. 正しいAPI キーを設定
 echo "GEMINI_API_KEY=your_valid_api_key" >> .env
@@ -300,7 +300,7 @@ Container killed due to memory limit
 ```yaml
 # docker-compose.ymlにメモリ制限を追加
 services:
-  meeting-minutes-byc-dev:
+  meeting-minutes-byc:
     # ... other settings
     deploy:
       resources:
@@ -334,7 +334,7 @@ sudo docker system prune -a
 sudo find /var/log -name "*.log" -mtime +7 -delete
 
 # 4. 古いファイルを削除
-sudo find /volume1/data/meeting-minutes-byc-dev/ -name "*.mp3" -mtime +30 -delete
+sudo find /volume1/data/meeting-minutes-byc/ -name "*.mp3" -mtime +30 -delete
 ```
 
 ## ネットワーク関連の問題
@@ -382,7 +382,7 @@ echo $HTTPS_PROXY
 
 # 2. Docker Composeにプロキシ設定を追加
 services:
-  meeting-minutes-byc-dev:
+  meeting-minutes-byc:
     environment:
       - HTTP_PROXY=http://proxy.company.com:8080
       - HTTPS_PROXY=http://proxy.company.com:8080
@@ -436,7 +436,7 @@ logging.basicConfig(
 sudo docker compose down
 
 # 特定のコンテナを停止
-sudo docker stop meeting-minutes-byc-dev-app
+sudo docker stop meeting-minutes-byc-app
 ```
 
 #### 緊急再起動
@@ -456,7 +456,7 @@ sudo reboot
 tar -xzf meeting-minutes-backup-20251014.tar.gz
 
 # データを復元
-sudo cp -r meeting-minutes-byc-dev/ /volume1/data/
+sudo cp -r meeting-minutes-byc/ /volume1/data/
 ```
 
 ## 予防策
@@ -481,7 +481,7 @@ sudo docker ps -a
 sudo docker system prune -a
 
 # バックアップの作成
-tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-minutes-byc-dev/
+tar -czf meeting-minutes-backup-$(date +%Y%m%d).tar.gz /volume1/data/meeting-minutes-byc/
 
 # セキュリティアップデート
 sudo apt update && sudo apt upgrade -y

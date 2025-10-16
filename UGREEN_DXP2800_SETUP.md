@@ -11,8 +11,8 @@
 
 #### メインプロジェクト
 ```
-/home/AdminUser/meeting-minutes-byc-dev/
-├── meeting-minutes-byc-dev/  # メインアプリケーション
+/home/AdminUser/meeting-minutes-byc/
+├── meeting-minutes-byc/  # メインアプリケーション
 │   ├── app.py
 │   ├── Dockerfile
 │   ├── requirements.txt
@@ -46,7 +46,7 @@ ssh AdminUser@192.168.68.110
 # プロジェクトファイルを展開
 cd /home/AdminUser
 tar -xzf nas-project.tar.gz
-mv nas-project meeting-minutes-byc-dev
+mv nas-project meeting-minutes-byc
 ```
 
 ### Step 2: Docker Compose設定ファイルの作成
@@ -56,7 +56,7 @@ mv nas-project meeting-minutes-byc-dev
 ssh AdminUser@192.168.68.110
 
 # プロダクション用のdocker-compose.ymlを作成
-cd /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev
+cd /home/AdminUser/meeting-minutes-byc/meeting-minutes-byc
 cat > docker-compose-production.yml << 'EOF'
 version: '3.8'
 
@@ -129,7 +129,7 @@ curl -f http://localhost:5000/health
 - **アプリケーション**: `meeting-minutes-byc-app` コンテナ
 - **ポート**: 5000
 - **データ保存**: `/volume2/data/meeting-minutes-byc/`
-- **プロジェクト場所**: `/home/AdminUser/meeting-minutes-byc-dev/`
+- **プロジェクト場所**: `/home/AdminUser/meeting-minutes-byc/`
 
 ### データ保存場所
 ```
@@ -157,7 +157,7 @@ sudo docker restart meeting-minutes-byc-app
 docker logs meeting-minutes-byc-app
 
 # コンテナの削除（再デプロイ時）
-sudo docker compose -f /home/AdminUser/meeting-minutes-byc-dev/meeting-minutes-byc-dev/docker-compose-production.yml down
+sudo docker compose -f /home/AdminUser/meeting-minutes-byc/meeting-minutes-byc/docker-compose-production.yml down
 ```
 
 ### データの管理
@@ -171,7 +171,7 @@ find /volume2/data/meeting-minutes-byc -type f -mtime +30 -delete
 ## 📊 設定の特徴
 
 ### 最適化された構成
-- **アプリケーション**: `/home/AdminUser/meeting-minutes-byc-dev/` (ユーザーディレクトリ)
+- **アプリケーション**: `/home/AdminUser/meeting-minutes-byc/` (ユーザーディレクトリ)
 - **データ**: `/volume2/data/meeting-minutes-byc/` (大容量ストレージ)
 - **デプロイ方法**: Docker Compose (コマンドライン)
 
@@ -219,7 +219,7 @@ tail -f /volume2/data/meeting-minutes-byc/logs/app.log
 ### ディスク使用量確認
 ```bash
 # プロジェクト全体の使用量
-du -sh /home/AdminUser/meeting-minutes-byc-dev
+du -sh /home/AdminUser/meeting-minutes-byc
 du -sh /volume2/data/meeting-minutes-byc
 
 # 詳細な使用量
@@ -232,7 +232,7 @@ du -sh /volume2/data/meeting-minutes-byc/*
 
 1. **権限エラー**
    ```bash
-   sudo chown -R AdminUser:admin /home/AdminUser/meeting-minutes-byc-dev
+   sudo chown -R AdminUser:admin /home/AdminUser/meeting-minutes-byc
    sudo chown -R AdminUser:admin /volume2/data/meeting-minutes-byc
    ```
 

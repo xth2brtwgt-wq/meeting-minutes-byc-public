@@ -7,7 +7,7 @@ Meeting Minutes BYCアプリケーションのバージョン情報は、`config
 ## 🗂️ ファイル構成
 
 ```
-meeting-minutes-byc-dev/
+meeting-minutes-byc/
 ├── config/
 │   └── version.py          # バージョン情報の一元管理
 ├── app.py                  # メインアプリケーション
@@ -97,7 +97,7 @@ print(version_string)  # Meeting Minutes BYC v1.0.2
 
 ### コマンドラインでの確認
 ```bash
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 python3 -c "from config.version import get_version_string; print(get_version_string())"
 ```
 

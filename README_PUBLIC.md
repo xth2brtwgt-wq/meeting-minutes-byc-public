@@ -27,7 +27,7 @@
 
 ```bash
 # 環境変数ファイルを作成
-cp meeting-minutes-byc-dev/env.example meeting-minutes-byc-dev/.env
+cp meeting-minutes-byc/env.example meeting-minutes-byc/.env
 ```
 
 ### 2. 必要なAPIキーの設定
@@ -52,7 +52,7 @@ EMAIL_PASSWORD=your_email_password_here
 ### 3. Docker Composeで起動
 
 ```bash
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 sudo docker compose -f docker-compose.dev.yml up -d
 ```
 
@@ -81,17 +81,17 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
 # 依存関係のインストール
-pip install -r meeting-minutes-byc-dev/requirements.txt
+pip install -r meeting-minutes-byc/requirements.txt
 
 # アプリケーションの起動
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 python app.py
 ```
 
 ### Docker開発環境
 
 ```bash
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 docker compose -f docker-compose.dev.yml up -d
 ```
 

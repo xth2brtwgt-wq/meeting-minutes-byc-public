@@ -32,7 +32,7 @@
 ```bash
 # リポジトリのクローン
 git clone <repository-url>
-cd meeting-minutes-byc-dev
+cd meeting-minutes-byc
 
 # 環境変数ファイルの作成
 cp env_example.txt .env
@@ -108,7 +108,7 @@ docker-compose up --build
 ## 📁 プロジェクト構造
 
 ```
-meeting-minutes-byc-dev/
+meeting-minutes-byc/
 ├── app.py                 # メインアプリケーション（WebSocket対応）
 ├── requirements.txt       # Python依存関係
 ├── Dockerfile            # Dockerイメージ定義
