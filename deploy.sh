@@ -23,7 +23,7 @@ echo "🔍 Checking application health..."
 sleep 15
 if curl -f http://localhost:5002/health; then
     echo "✅ Deployment completed successfully!"
-    echo "🌐 Application is running at: http://192.168.68.110:5002"
+    echo "🌐 Application is running at: http://your_nas_ip:5002"
 else
     echo "❌ Health check failed!"
     echo "📋 Checking logs..."
