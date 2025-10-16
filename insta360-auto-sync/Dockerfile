@@ -11,6 +11,10 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     cifs-utils \
+    gcc \
+    python3-dev \
+    musl-dev \
+    linux-headers \
     bash \
     curl \
     tzdata \
@@ -19,7 +23,7 @@ RUN apk add --no-cache \
 
 # Pythonパッケージのインストール
 COPY requirements.txt /tmp/
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt
 
 # 作業ディレクトリの設定
 WORKDIR /app
@@ -44,4 +48,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python3 /app/scripts/test_connection.py || exit 1
 
 # デフォルトコマンド
-CMD ["python3", "/app/scripts/sync.py"]
+CMD ["python3", "/app/scripts/run_scheduler.py"]
