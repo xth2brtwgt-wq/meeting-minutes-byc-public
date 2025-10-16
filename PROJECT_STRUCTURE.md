@@ -16,7 +16,7 @@ nas-project/
 │       ├── setup_nas.py         # NAS環境セットアップスクリプト
 │       └── backup_data.py       # データバックアップスクリプト
 │
-├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版 v1.0.0）
+├── 📁 meeting-minutes-byc-dev/  # 議事録作成アプリケーション（最新版 v1.0.1）
 │   ├── app.py                  # メインアプリケーション（Flask + WebSocket）
 │   ├── requirements.txt        # Python依存関係
 │   ├── docker-compose.dev.yml  # Docker Compose設定
@@ -83,7 +83,7 @@ nas-project/
 ### Meeting Minutes BYC Dev アプリケーション（最新版）
 
 #### `meeting-minutes-byc-dev/`
-- **`app.py`**: Flask Webアプリケーション（v1.0.0）
+- **`app.py`**: Flask Webアプリケーション（v1.0.1）
   - 音声ファイルアップロード
   - Gemini 2.5 Flash文字起こし
   - エグゼクティブアシスタント形式の議事録生成
@@ -169,7 +169,7 @@ python common/scripts/backup_data.py --action create --backup-name meeting_data
 
 ## 📋 設定管理
 
-### 環境変数（最新版 v1.0.0）
+### 環境変数（最新版 v1.0.1）
 - `GEMINI_API_KEY`: Google Gemini AI APIキー（必須）
 - `NOTION_API_KEY`: Notion APIキー（オプション）
 - `NOTION_DATABASE_ID`: NotionデータベースID（オプション）

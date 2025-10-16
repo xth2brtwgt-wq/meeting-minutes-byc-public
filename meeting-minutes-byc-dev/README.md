@@ -1,4 +1,4 @@
-# Meeting Minutes BYC v1.0.0 - 音声文字起こし・議事録生成アプリケーション
+# Meeting Minutes BYC v1.0.1 - 音声文字起こし・議事録生成アプリケーション
 
 ## 📋 概要
 
