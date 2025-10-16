@@ -28,8 +28,7 @@ from utils.markdown_generator import MarkdownGenerator
 load_dotenv()
 
 # アプリケーション情報
-APP_VERSION = "1.0.1"
-APP_NAME = "Meeting Minutes BYC"
+from config.version import APP_NAME, APP_VERSION
 
 # Flask アプリケーションの初期化
 app = Flask(__name__)

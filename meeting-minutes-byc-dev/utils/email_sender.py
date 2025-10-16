@@ -16,8 +16,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # アプリケーション情報
-APP_VERSION = "1.0.1"
-APP_NAME = "Meeting Minutes BYC"
+from config.version import APP_NAME, APP_VERSION
 
 class EmailSender:
     def __init__(self):
