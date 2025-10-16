@@ -2,6 +2,7 @@ services:
   insta360-auto-sync:
     build: .
     container_name: insta360-auto-sync
+    user: root
     volumes:
       # ログディレクトリ
       - ./logs:/app/logs
