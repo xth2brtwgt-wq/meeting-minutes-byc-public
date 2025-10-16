@@ -13,6 +13,7 @@ class MeetingMinutesApp {
         this.setupDragAndDrop();
         this.setDefaultValues();
         this.initWebSocket();
+        this.setupDictionaryManagement();
     }
     
     initWebSocket() {
@@ -566,6 +567,244 @@ class MeetingMinutesApp {
         // トップ画面に戻る
         this.resetForm();
     }
+
+    // 辞書管理機能
+    setupDictionaryManagement() {
+        // 辞書管理ボタンのイベントリスナー
+        const openDictionaryBtn = document.getElementById('openDictionary');
+        const closeDictionaryBtn = document.getElementById('closeDictionary');
+        const searchDictionaryBtn = document.getElementById('searchDictionary');
+        const addDictionaryEntryBtn = document.getElementById('addDictionaryEntry');
+
+        if (openDictionaryBtn) {
+            openDictionaryBtn.addEventListener('click', () => this.showDictionaryCard());
+        }
+
+        if (closeDictionaryBtn) {
+            closeDictionaryBtn.addEventListener('click', () => this.hideDictionaryCard());
+        }
+
+        if (searchDictionaryBtn) {
+            searchDictionaryBtn.addEventListener('click', () => this.searchDictionary());
+        }
+
+        if (addDictionaryEntryBtn) {
+            addDictionaryEntryBtn.addEventListener('click', () => this.addDictionaryEntry());
+        }
+
+        // 検索入力のEnterキー対応
+        const dictionarySearchInput = document.getElementById('dictionarySearch');
+        if (dictionarySearchInput) {
+            dictionarySearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.searchDictionary();
+                }
+            });
+        }
+    }
+
+    showDictionaryCard() {
+        document.getElementById('uploadCard').style.display = 'none';
+        document.getElementById('dictionaryCard').style.display = 'block';
+        this.loadDictionaryData();
+    }
+
+    hideDictionaryCard() {
+        document.getElementById('dictionaryCard').style.display = 'none';
+        document.getElementById('uploadCard').style.display = 'block';
+    }
+
+    async loadDictionaryData() {
+        try {
+            const response = await fetch('/api/dictionary');
+            const data = await response.json();
+
+            if (data.success) {
+                this.updateDictionaryStats(data.statistics);
+                this.displayDictionaryList(data.entries);
+            } else {
+                console.error('辞書データの読み込みに失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('辞書データの読み込みエラー:', error);
+        }
+    }
+
+    updateDictionaryStats(stats) {
+        document.getElementById('totalCategories').textContent = stats.total_categories;
+        document.getElementById('totalEntries').textContent = stats.total_entries;
+    }
+
+    displayDictionaryList(entries) {
+        const dictionaryList = document.getElementById('dictionaryList');
+        dictionaryList.innerHTML = '';
+
+        const categoryNames = {
+            'company_names': '会社名・組織名',
+            'technical_terms': '技術用語',
+            'person_names': '人名',
+            'common_phrases': 'よく使われるフレーズ'
+        };
+
+        for (const [categoryKey, categoryData] of Object.entries(entries)) {
+            const categoryName = categoryNames[categoryKey] || categoryKey;
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'dictionary-category';
+
+            const entriesHtml = Object.entries(categoryData.entries)
+                .map(([japanese, correct]) => `
+                    <div class="dictionary-entry">
+                        <div class="dictionary-entry-text">
+                            <div class="dictionary-entry-japanese">${japanese}</div>
+                            <div class="dictionary-entry-correct">→ ${correct}</div>
+                        </div>
+                        <div class="dictionary-entry-actions">
+                            <button class="btn btn-danger btn-sm" onclick="app.removeDictionaryEntry('${categoryKey}', '${japanese}')">削除</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            categoryDiv.innerHTML = `
+                <h4>
+                    ${categoryName}
+                    <span class="badge">${Object.keys(categoryData.entries).length}件</span>
+                </h4>
+                <div class="dictionary-entries">
+                    ${entriesHtml}
+                </div>
+            `;
+
+            dictionaryList.appendChild(categoryDiv);
+        }
+    }
+
+    async searchDictionary() {
+        const query = document.getElementById('dictionarySearch').value.trim();
+        if (!query) {
+            document.getElementById('searchResults').style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/dictionary/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.displaySearchResults(data.results);
+            } else {
+                console.error('辞書検索に失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('辞書検索エラー:', error);
+        }
+    }
+
+    displaySearchResults(results) {
+        const searchResults = document.getElementById('searchResults');
+        const searchResultsList = document.getElementById('searchResultsList');
+
+        if (results.length === 0) {
+            searchResultsList.innerHTML = '<p>検索結果が見つかりませんでした。</p>';
+        } else {
+            const resultsHtml = results.map(([category, japanese, correct]) => `
+                <div class="search-result-item">
+                    <div class="search-result-info">
+                        <div class="search-result-category">${category}</div>
+                        <div class="search-result-text">${japanese} → ${correct}</div>
+                    </div>
+                    <div class="search-result-actions">
+                        <button class="btn btn-danger btn-sm" onclick="app.removeDictionaryEntry('${category}', '${japanese}')">削除</button>
+                    </div>
+                </div>
+            `).join('');
+
+            searchResultsList.innerHTML = resultsHtml;
+        }
+
+        searchResults.style.display = 'block';
+    }
+
+    async addDictionaryEntry() {
+        const category = document.getElementById('entryCategory').value;
+        const japanese = document.getElementById('entryJapanese').value.trim();
+        const correct = document.getElementById('entryCorrect').value.trim();
+
+        if (!japanese || !correct) {
+            alert('日本語表記と正しい表記は必須です。');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/dictionary/entry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    category: category,
+                    japanese: japanese,
+                    correct_form: correct
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // フォームをクリア
+                document.getElementById('entryJapanese').value = '';
+                document.getElementById('entryCorrect').value = '';
+                
+                // 辞書データを再読み込み
+                this.loadDictionaryData();
+                
+                alert('辞書エントリを追加しました。');
+            } else {
+                alert('辞書エントリの追加に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('辞書エントリ追加エラー:', error);
+            alert('辞書エントリの追加中にエラーが発生しました。');
+        }
+    }
+
+    async removeDictionaryEntry(category, japanese) {
+        if (!confirm(`「${japanese}」を辞書から削除しますか？`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/dictionary/entry', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    category: category,
+                    japanese: japanese
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // 辞書データを再読み込み
+                this.loadDictionaryData();
+                
+                // 検索結果も更新
+                const query = document.getElementById('dictionarySearch').value.trim();
+                if (query) {
+                    this.searchDictionary();
+                }
+                
+                alert('辞書エントリを削除しました。');
+            } else {
+                alert('辞書エントリの削除に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('辞書エントリ削除エラー:', error);
+            alert('辞書エントリの削除中にエラーが発生しました。');
+        }
+    }
     
     resetForm() {
         // フォームのリセット
@@ -632,7 +871,10 @@ function backToTop() {
     app.backToTop();
 }
 
+// グローバル変数としてappを定義
+let app;
+
 // アプリケーションの初期化
 document.addEventListener('DOMContentLoaded', () => {
-    new MeetingMinutesApp();
+    app = new MeetingMinutesApp();
 });

@@ -41,7 +41,10 @@
 
             <!-- ファイルアップロード -->
             <div class="card" id="uploadCard">
-                <h2>🎤 音声ファイルアップロード</h2>
+                <div class="card-header">
+                    <h2>🎤 音声ファイルアップロード</h2>
+                    <button id="openDictionary" class="btn btn-outline-secondary">📚 辞書管理</button>
+                </div>
                 
                 <!-- 会議情報入力 -->
                 <div class="form-section">
@@ -81,6 +84,68 @@
                 </div>
             </div>
 
+            <!-- 辞書管理 -->
+            <div class="card" id="dictionaryCard" style="display: none;">
+                <h2>📚 カスタム辞書管理</h2>
+                <p class="description">音声文字起こしの精度向上のための辞書を管理できます。</p>
+                
+                <!-- 辞書統計 -->
+                <div class="dictionary-stats" id="dictionaryStats">
+                    <div class="stat-item">
+                        <span class="stat-label">総カテゴリ数:</span>
+                        <span class="stat-value" id="totalCategories">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">総エントリ数:</span>
+                        <span class="stat-value" id="totalEntries">-</span>
+                    </div>
+                </div>
+
+                <!-- 検索機能 -->
+                <div class="dictionary-search">
+                    <input type="text" id="dictionarySearch" placeholder="辞書を検索..." class="form-control">
+                    <button id="searchDictionary" class="btn btn-secondary">検索</button>
+                </div>
+
+                <!-- 検索結果 -->
+                <div id="searchResults" class="search-results" style="display: none;">
+                    <h3>検索結果</h3>
+                    <div id="searchResultsList"></div>
+                </div>
+
+                <!-- 辞書エントリ追加 -->
+                <div class="dictionary-add">
+                    <h3>新しいエントリを追加</h3>
+                    <div class="form-group">
+                        <label for="entryCategory">カテゴリ:</label>
+                        <select id="entryCategory" class="form-control">
+                            <option value="company_names">会社名・組織名</option>
+                            <option value="technical_terms">技術用語</option>
+                            <option value="person_names">人名</option>
+                            <option value="common_phrases">よく使われるフレーズ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entryJapanese">日本語表記:</label>
+                        <input type="text" id="entryJapanese" class="form-control" placeholder="例: グリーン">
+                    </div>
+                    <div class="form-group">
+                        <label for="entryCorrect">正しい表記:</label>
+                        <input type="text" id="entryCorrect" class="form-control" placeholder="例: Ugreen">
+                    </div>
+                    <button id="addDictionaryEntry" class="btn btn-primary">追加</button>
+                </div>
+
+                <!-- 辞書一覧 -->
+                <div class="dictionary-list">
+                    <h3>辞書一覧</h3>
+                    <div id="dictionaryList"></div>
+                </div>
+
+                <div class="dictionary-actions">
+                    <button id="closeDictionary" class="btn btn-secondary">閉じる</button>
+                </div>
+            </div>
 
             <!-- 結果表示 -->
             <div class="card" id="resultCard" style="display: none;">

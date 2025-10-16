@@ -23,6 +23,7 @@ import google.generativeai as genai
 from utils.email_sender import EmailSender
 from utils.notion_client import NotionClient
 from utils.markdown_generator import MarkdownGenerator
+from utils.dictionary_manager import DictionaryManager
 
 # 環境変数の読み込み
 load_dotenv()
@@ -56,6 +57,9 @@ os.makedirs(TRANSCRIPT_FOLDER, exist_ok=True)
 # メール送信の非同期処理
 email_queue = Queue()
 email_status_tracker = {}
+
+# カスタム辞書マネージャーの初期化
+dictionary_manager = DictionaryManager()
 
 def send_email_async(email_data):
     """バックグラウンドでメール送信"""
@@ -202,10 +206,15 @@ def transcribe_audio_with_gemini(file_path):
         }
         mime_type = mime_type_map.get(file_ext, 'audio/wav')
         
+        # カスタム辞書情報を取得
+        dictionary_info = dictionary_manager.get_dictionary_for_prompt()
+        
         # Gemini AI に送信するためのプロンプト
-        prompt = """
+        prompt = f"""
         以下の音声ファイルの内容を正確に文字起こししてください。
         日本語の会議内容を想定し、話者の区別も含めて詳細に文字起こししてください。
+        
+        {dictionary_info}
         
         出力形式：
         [時刻] 話者名: 発言内容
@@ -213,6 +222,11 @@ def transcribe_audio_with_gemini(file_path):
         例：
         [00:01:23] 田中: 今日の会議の議題について説明します
         [00:02:15] 佐藤: ありがとうございます。質問があります
+        
+        注意事項：
+        - 上記のカスタム辞書に記載されている用語は、必ず指定された正しい表記で文字起こししてください
+        - 技術用語や固有名詞は特に注意深く聞き取り、正確に文字起こししてください
+        - 不明な用語がある場合は、音声に最も近い表記を推測して記載してください
         """
         
         # Gemini AI に送信
@@ -380,6 +394,135 @@ def test_notion():
         return jsonify({
             'success': False,
             'message': f'Notion接続テストエラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/dictionary', methods=['GET'])
+def get_dictionary():
+    """辞書情報を取得"""
+    try:
+        entries = dictionary_manager.get_all_entries()
+        statistics = dictionary_manager.get_statistics()
+        
+        return jsonify({
+            'success': True,
+            'entries': entries,
+            'statistics': statistics,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"辞書取得エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'辞書取得エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/dictionary/search', methods=['GET'])
+def search_dictionary():
+    """辞書を検索"""
+    try:
+        query = request.args.get('q', '')
+        if not query:
+            return jsonify({
+                'success': False,
+                'message': '検索クエリが指定されていません',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        results = dictionary_manager.search_entries(query)
+        
+        return jsonify({
+            'success': True,
+            'query': query,
+            'results': results,
+            'count': len(results),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"辞書検索エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'辞書検索エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/dictionary/entry', methods=['POST'])
+def add_dictionary_entry():
+    """辞書エントリを追加"""
+    try:
+        data = request.get_json()
+        category = data.get('category', '')
+        japanese = data.get('japanese', '')
+        correct_form = data.get('correct_form', '')
+        
+        if not all([category, japanese, correct_form]):
+            return jsonify({
+                'success': False,
+                'message': 'カテゴリ、日本語表記、正しい表記は必須です',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        success = dictionary_manager.add_entry(category, japanese, correct_form)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': '辞書エントリを追加しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': '辞書エントリの追加に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"辞書エントリ追加エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'辞書エントリ追加エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/dictionary/entry', methods=['DELETE'])
+def remove_dictionary_entry():
+    """辞書エントリを削除"""
+    try:
+        data = request.get_json()
+        category = data.get('category', '')
+        japanese = data.get('japanese', '')
+        
+        if not all([category, japanese]):
+            return jsonify({
+                'success': False,
+                'message': 'カテゴリと日本語表記は必須です',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        success = dictionary_manager.remove_entry(category, japanese)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': '辞書エントリを削除しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': '辞書エントリの削除に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"辞書エントリ削除エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'辞書エントリ削除エラー: {str(e)}',
             'timestamp': datetime.now().isoformat()
         }), 500
 
