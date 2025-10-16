@@ -15,13 +15,13 @@ sudo chown -R AdminUser:AdminUser /volume1/docker/services/nas-project
 
 # 2. データ保存ディレクトリの作成（大容量データ用）
 echo "💾 データ保存ディレクトリを作成中..."
-sudo mkdir -p /volume2/data/nas-project/audio-transcription/{uploads,transcripts,logs,backups}
-sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
+sudo mkdir -p /volume2/data/meeting-minutes-byc/{uploads,transcripts,logs,backups}
+sudo chown -R AdminUser:AdminUser /volume2/data/meeting-minutes-byc
 
 # 3. 権限設定
 echo "🔐 権限を設定中..."
 sudo chmod -R 755 /volume1/docker/services/nas-project
-sudo chmod -R 755 /volume2/data/nas-project
+sudo chmod -R 755 /volume2/data/meeting-minutes-byc
 
 # 4. 既存のmeeting-minutesディレクトリの確認
 echo "🔍 既存のmeeting-minutesディレクトリを確認中..."
@@ -43,7 +43,7 @@ echo "メインプロジェクト:"
 tree /volume1/docker/services/nas-project 2>/dev/null || ls -la /volume1/docker/services/nas-project
 echo ""
 echo "データ保存:"
-tree /volume2/data/nas-project 2>/dev/null || ls -la /volume2/data/nas-project
+tree /volume2/data/meeting-minutes-byc 2>/dev/null || ls -la /volume2/data/meeting-minutes-byc
 
 echo ""
 echo "✅ ディレクトリセットアップが完了しました！"

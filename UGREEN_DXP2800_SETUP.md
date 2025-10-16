@@ -24,7 +24,7 @@
 
 #### データ保存（大容量）
 ```
-/volume2/data/nas-project/audio-transcription/
+/volume2/data/meeting-minutes-byc/
 ├── uploads/      # 音声ファイル
 ├── transcripts/  # 文字起こし結果
 ├── logs/         # ログファイル
@@ -45,9 +45,9 @@ sudo mkdir -p nas-project
 sudo chown -R AdminUser:AdminUser nas-project
 
 # データ保存ディレクトリの作成
-sudo mkdir -p /volume2/data/nas-project/audio-transcription/{uploads,transcripts,logs,backups}
-sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
-sudo chmod -R 755 /volume2/data/nas-project
+sudo mkdir -p /volume2/data/meeting-minutes-byc/{uploads,transcripts,logs,backups}
+sudo chown -R AdminUser:AdminUser /volume2/data/meeting-minutes-byc
+sudo chmod -R 755 /volume2/data/meeting-minutes-byc
 ```
 
 ### Step 2: プロジェクトファイルのアップロード
@@ -100,10 +100,10 @@ docker ps
 ### ボリュームマウント
 ```yaml
 volumes:
-  - /volume2/data/nas-project/audio-transcription/uploads:/tmp/uploads
-  - /volume2/data/nas-project/audio-transcription/transcripts:/tmp/transcripts
+  - /volume2/data/meeting-minutes-byc/uploads:/tmp/uploads
+  - /volume2/data/meeting-minutes-byc/transcripts:/tmp/transcripts
   - /volume1/docker/services/nas-project/meeting-minutes/config:/app/meeting-minutes/config
-  - /volume2/data/nas-project/audio-transcription/logs:/app/logs
+  - /volume2/data/meeting-minutes-byc/logs:/app/logs
 ```
 
 ### 環境変数
@@ -137,17 +137,17 @@ python common/scripts/backup_data.py --action create --backup-name meeting_data
 docker logs audio-transcription-app
 
 # アプリケーションログ
-tail -f /volume2/data/nas-project/audio-transcription/logs/app.log
+tail -f /volume2/data/meeting-minutes-byc/logs/app.log
 ```
 
 ### ディスク使用量確認
 ```bash
 # プロジェクト全体の使用量
 du -sh /volume1/docker/services/nas-project
-du -sh /volume2/data/nas-project
+du -sh /volume2/data/meeting-minutes-byc
 
 # 詳細な使用量
-du -sh /volume2/data/nas-project/audio-transcription/*
+du -sh /volume2/data/meeting-minutes-byc/*
 ```
 
 ## 🚨 トラブルシューティング
@@ -157,7 +157,7 @@ du -sh /volume2/data/nas-project/audio-transcription/*
 1. **権限エラー**
    ```bash
    sudo chown -R AdminUser:AdminUser /volume1/docker/services/nas-project
-   sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
+   sudo chown -R AdminUser:AdminUser /volume2/data/meeting-minutes-byc
    ```
 
 2. **ポート競合**
@@ -165,7 +165,7 @@ du -sh /volume2/data/nas-project/audio-transcription/*
 
 3. **ディスク容量不足**
    - volume2の使用量を確認: `df -h /volume2`
-   - 古いファイルを削除: `find /volume2/data/nas-project -type f -mtime +30 -delete`
+   - 古いファイルを削除: `find /volume2/data/meeting-minutes-byc -type f -mtime +30 -delete`
 
 ### ログ確認
 ```bash

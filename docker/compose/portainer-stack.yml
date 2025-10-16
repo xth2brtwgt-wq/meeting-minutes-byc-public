@@ -9,11 +9,11 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # UGreen DXP2800最適化パス（大容量データはvolume2を使用）
-      - /volume2/data/nas-project/audio-transcription/uploads:/tmp/uploads
-      - /volume2/data/nas-project/audio-transcription/transcripts:/tmp/transcripts
+      # データ保存パス（/volume2/data/meeting-minutes-byc配下）
+      - /volume2/data/meeting-minutes-byc/uploads:/tmp/uploads
+      - /volume2/data/meeting-minutes-byc/transcripts:/tmp/transcripts
       - /volume1/docker/services/nas-project/meeting-minutes/config:/app/meeting-minutes/config
-      - /volume2/data/nas-project/audio-transcription/logs:/app/logs
+      - /volume2/data/meeting-minutes-byc/logs:/app/logs
     environment:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
@@ -46,10 +46,10 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /volume2/data/nas-project/audio-transcription/uploads
+      device: /volume2/data/meeting-minutes-byc/uploads
   audio_transcripts:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /volume2/data/nas-project/audio-transcription/transcripts
+      device: /volume2/data/meeting-minutes-byc/transcripts

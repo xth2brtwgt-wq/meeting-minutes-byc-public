@@ -9,9 +9,10 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # 音声ファイルと結果を永続化
-      - ../../meeting-minutes/data/uploads:/tmp/uploads
-      - ../../meeting-minutes/data/transcripts:/tmp/transcripts
+      # 音声ファイルと結果を永続化（/volume2/data/meeting-minutes-byc配下）
+      - /volume2/data/meeting-minutes-byc/uploads:/tmp/uploads
+      - /volume2/data/meeting-minutes-byc/transcripts:/tmp/transcripts
+      - /volume2/data/meeting-minutes-byc/logs:/app/logs
       # 設定ファイル
       - ../../meeting-minutes/config:/app/meeting-minutes/config
     environment:
