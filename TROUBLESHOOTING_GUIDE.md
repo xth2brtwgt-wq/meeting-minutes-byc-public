@@ -70,7 +70,7 @@ CMD ["python", "app.py"]
 
 #### 問題
 ```
-scp: dest open "/home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml": No such file or directory
+scp: dest open "/home/your_username/meeting-minutes-byc-dev/docker-compose.yml": No such file or directory
 ```
 
 #### 原因
@@ -81,13 +81,13 @@ scp: dest open "/home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml": No 
 #### 解決方法
 ```bash
 # 1. リモートディレクトリを作成
-ssh AdminUser@192.168.68.110 'mkdir -p /home/AdminUser/meeting-minutes-byc-dev'
+ssh your_username@your_nas_ip 'mkdir -p /home/your_username/meeting-minutes-byc-dev'
 
 # 2. 権限を確認
-ssh AdminUser@192.168.68.110 'ls -la /home/AdminUser/'
+ssh your_username@your_nas_ip 'ls -la /home/your_username/'
 
 # 3. ファイルを直接作成（scpの代替）
-ssh AdminUser@192.168.68.110 'cat > /home/AdminUser/meeting-minutes-byc-dev/docker-compose.yml << "EOF"
+ssh your_username@your_nas_ip 'cat > /home/your_username/meeting-minutes-byc-dev/docker-compose.yml << "EOF"
 # YAML content here
 EOF'
 ```
@@ -107,13 +107,13 @@ mkdir: cannot create directory '/var/services': Permission denied
 #### 解決方法
 ```bash
 # 正しいディレクトリを使用
-mkdir -p /home/AdminUser/meeting-minutes-byc-dev
+mkdir -p /home/your_username/meeting-minutes-byc-dev
 
 # 権限を確認
-ls -la /home/AdminUser/
+ls -la /home/your_username/
 
 # 必要に応じて権限を変更
-chmod 755 /home/AdminUser/meeting-minutes-byc-dev
+chmod 755 /home/your_username/meeting-minutes-byc-dev
 ```
 
 ## コンテナ関連の問題
@@ -149,7 +149,7 @@ sudo docker exec -it meeting-minutes-byc-dev-app ls -la /app/
 
 #### 問題
 ```
-curl: (7) Failed to connect to 192.168.68.110 port 5002 after 0 ms: Couldn't connect to server
+curl: (7) Failed to connect to your_nas_ip port 5002 after 0 ms: Couldn't connect to server
 ```
 
 #### 原因
@@ -191,7 +191,7 @@ sudo mkdir -p /volume1/data/meeting-minutes-byc-dev/uploads
 sudo mkdir -p /volume1/data/meeting-minutes-byc-dev/transcripts
 
 # 2. 権限を設定
-sudo chown -R AdminUser:admin /volume1/data/meeting-minutes-byc-dev/
+sudo chown -R your_username:admin /volume1/data/meeting-minutes-byc-dev/
 
 # 3. Docker Composeを再起動
 sudo docker compose down
@@ -493,7 +493,7 @@ sudo apt update && sudo apt upgrade -y
 ```bash
 # ヘルスチェックスクリプト
 #!/bin/bash
-if ! curl -f http://192.168.68.110:5002/health; then
+if ! curl -f http://your_nas_ip:5002/health; then
     echo "Service is down, restarting..."
     sudo docker compose restart
 fi

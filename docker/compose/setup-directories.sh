@@ -11,12 +11,12 @@ echo "🔧 UGreen DXP2800用ディレクトリをセットアップ中..."
 # 1. メインプロジェクトディレクトリの作成
 echo "📁 メインプロジェクトディレクトリを作成中..."
 sudo mkdir -p /volume1/docker/services/nas-project
-sudo chown -R AdminUser:AdminUser /volume1/docker/services/nas-project
+sudo chown -R your_username:your_username /volume1/docker/services/nas-project
 
 # 2. データ保存ディレクトリの作成（大容量データ用）
 echo "💾 データ保存ディレクトリを作成中..."
 sudo mkdir -p /volume2/data/nas-project/audio-transcription/{uploads,transcripts,logs,backups}
-sudo chown -R AdminUser:AdminUser /volume2/data/nas-project
+sudo chown -R your_username:your_username /volume2/data/nas-project
 
 # 3. 権限設定
 echo "🔐 権限を設定中..."
@@ -50,8 +50,8 @@ echo "✅ ディレクトリセットアップが完了しました！"
 echo ""
 echo "📋 次のステップ:"
 echo "1. プロジェクトファイルをアップロード:"
-echo "   rsync -avz --progress /path/to/nas-project/ AdminUser@192.168.68.110:/volume1/docker/services/nas-project/"
+echo "   rsync -avz --progress /path/to/nas-project/ your_username@your_nas_ip:/volume1/docker/services/nas-project/"
 echo ""
 echo "2. Portainerでスタックをデプロイ"
-echo "3. Webアプリケーションにアクセス: http://192.168.68.110:5000"
+echo "3. Webアプリケーションにアクセス: http://your_nas_ip:5000"
 

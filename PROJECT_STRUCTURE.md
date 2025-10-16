@@ -147,7 +147,7 @@ docker-compose up -d
 
 ### 5. NAS環境セットアップ
 ```bash
-python common/scripts/setup_nas.py --nas-ip 192.168.68.110 --username AdminUser
+python common/scripts/setup_nas.py --nas-ip your_nas_ip --username your_username
 ```
 
 ### 6. データバックアップ

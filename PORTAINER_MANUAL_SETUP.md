@@ -1,10 +1,10 @@
 # Portainer手動セットアップガイド
 
 ## 🔧 現在の状況
-- **Portainer URL**: http://192.168.68.110:9000
+- **Portainer URL**: http://your_nas_ip:9000
 - **ユーザー**: adminuser
 - **パスワード**: Tsuj!19700308
-- **Docker権限**: AdminUserでDockerコマンド実行時に権限エラー
+- **Docker権限**: your_usernameでDockerコマンド実行時に権限エラー
 
 ## 📋 手動セットアップ手順
 
@@ -13,8 +13,8 @@
 SSH接続で以下のコマンドを実行：
 
 ```bash
-# AdminUserをdockerグループに追加
-sudo usermod -aG docker AdminUser
+# your_usernameをdockerグループに追加
+sudo usermod -aG docker your_username
 
 # Dockerサービスを再起動
 sudo systemctl restart docker
@@ -25,7 +25,7 @@ exit
 
 再接続後、権限を確認：
 ```bash
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 docker ps
 ```
 
@@ -35,10 +35,10 @@ docker ps
 
 ```bash
 # プロジェクト全体をアップロード
-scp -r /Users/Yoshi/nas-project AdminUser@192.168.68.110:/volume1/docker/
+scp -r /Users/Yoshi/nas-project your_username@your_nas_ip:/volume1/docker/
 
 # または rsync を使用（推奨）
-rsync -avz --progress /Users/Yoshi/nas-project/ AdminUser@192.168.68.110:/volume1/docker/nas-project/
+rsync -avz --progress /Users/Yoshi/nas-project/ your_username@your_nas_ip:/volume1/docker/nas-project/
 ```
 
 ### Step 3: 必要なディレクトリの作成
@@ -46,17 +46,17 @@ rsync -avz --progress /Users/Yoshi/nas-project/ AdminUser@192.168.68.110:/volume
 NAS上で以下のディレクトリを作成：
 
 ```bash
-ssh AdminUser@192.168.68.110
+ssh your_username@your_nas_ip
 
 # 必要なディレクトリを作成
 sudo mkdir -p /volume1/docker/audio-transcription/{uploads,transcripts,config,logs}
-sudo chown -R AdminUser:AdminUser /volume1/docker/audio-transcription
+sudo chown -R your_username:your_username /volume1/docker/audio-transcription
 ```
 
 ### Step 4: Portainerでのスタック作成
 
 1. **Portainer管理画面にアクセス**
-   - URL: http://192.168.68.110:9000
+   - URL: http://your_nas_ip:9000
    - ユーザー: adminuser
    - パスワード: Tsuj!19700308
 
@@ -78,7 +78,7 @@ sudo chown -R AdminUser:AdminUser /volume1/docker/audio-transcription
    - ステータスが "Running" であることを確認
 
 2. **Webアプリケーションのアクセス**
-   - URL: http://192.168.68.110:5000
+   - URL: http://your_nas_ip:5000
    - 音声ファイルアップロード機能をテスト
 
 3. **ログの確認**
@@ -90,10 +90,10 @@ sudo chown -R AdminUser:AdminUser /volume1/docker/audio-transcription
 ### Docker権限エラーの場合
 ```bash
 # 権限を再確認
-groups AdminUser
+groups your_username
 
 # dockerグループに追加されていない場合
-sudo usermod -aG docker AdminUser
+sudo usermod -aG docker your_username
 newgrp docker
 ```
 
@@ -107,7 +107,7 @@ newgrp docker
 ls -la /volume1/docker/audio-transcription/
 
 # 権限を修正
-sudo chown -R AdminUser:AdminUser /volume1/docker/audio-transcription
+sudo chown -R your_username:your_username /volume1/docker/audio-transcription
 sudo chmod -R 755 /volume1/docker/audio-transcription
 ```
 
@@ -128,8 +128,8 @@ docker build -f docker/Dockerfile -t audio-transcription:latest .
 - **Logs**: アプリケーションログの確認
 
 ### アクセス方法
-- **Webアプリケーション**: http://192.168.68.110:5000
-- **Portainer管理画面**: http://192.168.68.110:9000
+- **Webアプリケーション**: http://your_nas_ip:5000
+- **Portainer管理画面**: http://your_nas_ip:9000
 
 ## 🔄 更新・メンテナンス
 
