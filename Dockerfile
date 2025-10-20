@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # ディレクトリの作成
-RUN mkdir -p uploads transcripts
+RUN mkdir -p uploads transcripts templates logs
 
 # ポートの公開
 EXPOSE 5000

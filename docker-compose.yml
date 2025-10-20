@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  meeting-minutes-byc:
+    build: .
+    container_name: meeting-minutes-byc
+    ports:
+      - "5002:5000"
+    volumes:
+      # 永続化データディレクトリ
+      - /home/AdminUser/meeting-minutes-data/uploads:/app/uploads
+      - /home/AdminUser/meeting-minutes-data/transcripts:/app/transcripts
+      - /home/AdminUser/meeting-minutes-data/templates:/app/templates
+      # ログディレクトリ
+      - /home/AdminUser/meeting-minutes-data/logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NOTION_API_KEY=${NOTION_API_KEY}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - UPLOAD_DIR=/app/uploads
+      - TRANSCRIPT_DIR=/app/transcripts
+      - TEMPLATES_DIR=/app/templates
+      - TZ=Asia/Tokyo
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    restart: unless-stopped
+    labels:
+      - "com.docker.compose.project=meeting-minutes-byc"
+      - "com.docker.compose.service=meeting-minutes-byc"
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - nas-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  nas-network:
+    external: true

@@ -24,6 +24,7 @@ from utils.email_sender import EmailSender
 from utils.notion_client import NotionClient
 from utils.markdown_generator import MarkdownGenerator
 from utils.dictionary_manager import DictionaryManager
+from utils.template_manager import TemplateManager
 
 # 環境変数の読み込み
 load_dotenv()
@@ -48,11 +49,13 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 UPLOAD_FOLDER = os.getenv('UPLOAD_DIR', './uploads')
 TRANSCRIPT_FOLDER = os.getenv('TRANSCRIPT_DIR', './transcripts')
+TEMPLATES_FOLDER = os.getenv('TEMPLATES_DIR', './templates')
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a', 'flac', 'ogg', 'webm'}
 
 # ディレクトリの作成
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TRANSCRIPT_FOLDER, exist_ok=True)
+os.makedirs(TEMPLATES_FOLDER, exist_ok=True)
 
 # メール送信の非同期処理
 email_queue = Queue()
@@ -60,6 +63,9 @@ email_status_tracker = {}
 
 # カスタム辞書マネージャーの初期化
 dictionary_manager = DictionaryManager()
+
+# テンプレートマネージャーの初期化
+template_manager = TemplateManager()
 
 def send_email_async(email_data):
     """バックグラウンドでメール送信"""
@@ -265,93 +271,20 @@ def _format_datetime_for_gemini(datetime_str):
         return datetime_str
 
 
-def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date=""):
+def generate_meeting_notes_with_gemini(transcript, conditions="", meeting_date="", template_id=None):
     """Gemini AI を使用して議事録を生成"""
     try:
         if not model:
             raise Exception("Gemini AI model not configured")
         
-        conditions_text = f"\n\n追加条件: {conditions}" if conditions else ""
-        meeting_date_text = f"\n\n会議日時: {meeting_date}" if meeting_date else ""
+        # テンプレートIDが指定されていない場合はデフォルトを使用
+        if not template_id:
+            template_id = template_manager.get_default_template_id()
         
-        # 日時形式を変換(空の場合は現在時刻を使用)
-        if meeting_date and meeting_date.strip():
-            formatted_meeting_date = _format_datetime_for_gemini(meeting_date)
-        else:
-            formatted_meeting_date = datetime.now().strftime('%Y/%m/%d %H:%M')
-        
-        prompt = f"""
-        あなたは経験豊富なエグゼクティブアシスタントとして、バーチャル会議の記録を個人用の構造化された議事録に変換する専門家です。
-        
-        ## あなたの役割と目的
-        - 主な目的は、バーチャル会議の記録を個人用の構造化された議事録に変換し、効率的なレビューとフォローアップを可能にすることです
-        - 明確で簡潔かつ実行可能な議事録を作成し、重要なテーマを特定し、コミットメントを追跡します
-        - 記録を分析して主要なトピックを理解し、重要な議論ポイントと決定事項を抽出し、すべてのアクション項目と担当者、期限を特定します
-        
-        ## 対象読者
-        効果的な情報管理と責任追跡のために簡潔で整理された会議ノートを必要とする忙しいプロフェッショナル
-        
-        ## 出力要件
-        - プロフェッショナルで構造化されたトーンを維持
-        - 箇条書きと太字のヘッダーを使用して読みやすさを高める
-        - エグゼクティブサマリー、ユーザーの主要なアクション項目/コミットメント、トピックごとの詳細な内訳の3つのセクションに整理
-        
-        文字起こし内容：
-        {transcript}
-        {conditions_text}
-        {meeting_date_text}
-        
-        以下の形式で議事録を作成してください：
-        
-        # 会議議事録
-        
-        ## エグゼクティブサマリー
-        - **日時**: {formatted_meeting_date}
-        - **参加者**: [参加者名]
-        - **主要議題**: [主要な議題の概要]
-        - **重要決定事項**: [最も重要な決定事項を3つ以内で要約]
-        
-        ## 主要な議題・トピック
-        1. **[議題1]**
-           - **内容**: [詳細な議論内容]
-           - **決定事項**: [決定内容]
-           - **重要なポイント**: [特に重要な議論ポイント]
-        
-        2. **[議題2]**
-           - **内容**: [詳細な議論内容]
-           - **決定事項**: [決定内容]
-           - **重要なポイント**: [特に重要な議論ポイント]
-        
-        3. **[議題3]**
-           - **内容**: [詳細な議論内容]
-           - **決定事項**: [決定内容]
-           - **重要なポイント**: [特に重要な議論ポイント]
-        
-        ## ユーザーの主要なアクション項目・コミットメント
-        - **[担当者]**: [タスク内容] - **期限**: [期限]
-        - **[担当者]**: [タスク内容] - **期限**: [期限]
-        - **[担当者]**: [タスク内容] - **期限**: [期限]
-        
-        ## 決定事項サマリー
-        - [決定事項1]
-        - [決定事項2]
-        - [決定事項3]
-        
-        ## 次回までの課題・懸念事項
-        - [課題1]
-        - [課題2]
-        - [課題3]
-        
-        ## 備考・その他の重要な情報
-        [その他の重要な情報、補足事項、次回会議への引き継ぎ事項]
-        
-        **重要**: 
-        - 議題・トピックの番号は必ず1から順番に連番で記載してください(1. 2. 3. 4. ...)
-        - 文字起こし内容から複数の議題を抽出し、それぞれに適切な番号を付けてください
-        - 同じ番号を複数回使用しないでください
-        - 太字のヘッダーを使用して構造化し、読みやすさを重視してください
-        - 例：1. 議題A、2. 議題B、3. 議題C のように連番で記載
-        """
+        # テンプレートを使用してプロンプトを生成
+        prompt = template_manager.generate_meeting_notes_with_template(
+            template_id, transcript, conditions, meeting_date
+        )
         
         response = model.generate_content(prompt)
         return response.text
@@ -527,6 +460,182 @@ def remove_dictionary_entry():
         }), 500
 
 
+# テンプレート管理API
+@app.route('/api/templates', methods=['GET'])
+def get_templates():
+    """テンプレート一覧を取得"""
+    try:
+        templates = template_manager.get_template_list()
+        default_template_id = template_manager.get_default_template_id()
+        
+        return jsonify({
+            'success': True,
+            'templates': templates,
+            'default_template_id': default_template_id,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"テンプレート取得エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'テンプレート取得エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/templates/<template_id>', methods=['GET'])
+def get_template(template_id):
+    """指定されたテンプレートを取得"""
+    try:
+        template = template_manager.get_template(template_id)
+        
+        if not template:
+            return jsonify({
+                'success': False,
+                'message': 'テンプレートが見つかりません',
+                'timestamp': datetime.now().isoformat()
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'template': template,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"テンプレート取得エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'テンプレート取得エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/templates', methods=['POST'])
+def add_template():
+    """カスタムテンプレートを追加"""
+    try:
+        data = request.get_json()
+        template_id = data.get('id', '')
+        name = data.get('name', '')
+        description = data.get('description', '')
+        prompt_template = data.get('prompt_template', '')
+        
+        if not all([template_id, name, prompt_template]):
+            return jsonify({
+                'success': False,
+                'message': 'ID、名前、プロンプトテンプレートは必須です',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        success = template_manager.add_custom_template(template_id, name, description, prompt_template)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'テンプレートを追加しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'テンプレートの追加に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"テンプレート追加エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'テンプレート追加エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/templates/<template_id>', methods=['PUT'])
+def update_template(template_id):
+    """テンプレートを更新"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        description = data.get('description')
+        prompt_template = data.get('prompt_template')
+        
+        success = template_manager.update_template(template_id, name, description, prompt_template)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'テンプレートを更新しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'テンプレートの更新に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"テンプレート更新エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'テンプレート更新エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/templates/<template_id>', methods=['DELETE'])
+def delete_template(template_id):
+    """テンプレートを削除"""
+    try:
+        success = template_manager.delete_template(template_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'テンプレートを削除しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'テンプレートの削除に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"テンプレート削除エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'テンプレート削除エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/api/templates/<template_id>/default', methods=['POST'])
+def set_default_template(template_id):
+    """デフォルトテンプレートを設定"""
+    try:
+        success = template_manager.set_default_template(template_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'デフォルトテンプレートを設定しました',
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'デフォルトテンプレートの設定に失敗しました',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+    except Exception as e:
+        logger.error(f"デフォルトテンプレート設定エラー: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'デフォルトテンプレート設定エラー: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """音声ファイルのアップロードと処理"""
@@ -550,6 +659,7 @@ def upload_file():
         conditions = request.form.get('conditions', '')
         email = request.form.get('email', '')
         send_to_notion = request.form.get('send_to_notion', 'false').lower() == 'true'
+        template_id = request.form.get('template_id', '')
         
         # ファイルの保存
         filename = generate_unique_filename(secure_filename(file.filename))
@@ -574,7 +684,7 @@ def upload_file():
         emit_progress_update(session_id, 'meeting_notes', '議事録を生成しています...', 50)
         
         # 議事録生成
-        meeting_notes = generate_meeting_notes_with_gemini(transcript, conditions, meeting_date)
+        meeting_notes = generate_meeting_notes_with_gemini(transcript, conditions, meeting_date, template_id)
         
         # 進捗更新: 議事録生成完了
         emit_progress_update(session_id, 'meeting_notes_complete', '議事録生成完了', 60, {'notes_length': len(meeting_notes)})
@@ -586,6 +696,7 @@ def upload_file():
             'meeting_notes': meeting_notes,
             'meeting_date': meeting_date,
             'conditions': conditions,
+            'template_id': template_id,
             'timestamp': datetime.now().isoformat(),
             'file_size': os.path.getsize(filepath)
         }

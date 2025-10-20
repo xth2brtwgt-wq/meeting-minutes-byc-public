@@ -14,6 +14,8 @@ class MeetingMinutesApp {
         this.setDefaultValues();
         this.initWebSocket();
         this.setupDictionaryManagement();
+        this.setupTemplateManagement();
+        this.loadTemplates();
     }
     
     initWebSocket() {
@@ -401,10 +403,12 @@ class MeetingMinutesApp {
             const meetingDate = document.getElementById('meetingDate').value;
             const conditions = document.getElementById('conditions').value;
             const email = document.getElementById('email').value;
+            const templateId = document.getElementById('templateSelect').value;
             
             if (meetingDate) formData.append('meeting_date', meetingDate);
             if (conditions) formData.append('conditions', conditions);
             if (email) formData.append('email', email);
+            if (templateId) formData.append('template_id', templateId);
             
             // Notion登録は常に実行
             formData.append('send_to_notion', 'true');
@@ -803,6 +807,367 @@ class MeetingMinutesApp {
         } catch (error) {
             console.error('辞書エントリ削除エラー:', error);
             alert('辞書エントリの削除中にエラーが発生しました。');
+        }
+    }
+
+    // テンプレート管理機能
+    setupTemplateManagement() {
+        // テンプレート管理ボタンのイベントリスナー
+        const openTemplateManagerBtn = document.getElementById('openTemplateManager');
+        const closeTemplateManagerBtn = document.getElementById('closeTemplateManager');
+        const showNewTemplateFormBtn = document.getElementById('showNewTemplateForm');
+        const cancelNewTemplateBtn = document.getElementById('cancelNewTemplate');
+        const createTemplateBtn = document.getElementById('createTemplate');
+        const editTemplateBtn = document.getElementById('editTemplate');
+        const saveTemplateBtn = document.getElementById('saveTemplate');
+        const cancelEditBtn = document.getElementById('cancelEdit');
+        const deleteTemplateBtn = document.getElementById('deleteTemplate');
+        const setAsDefaultBtn = document.getElementById('setAsDefault');
+
+        if (openTemplateManagerBtn) {
+            openTemplateManagerBtn.addEventListener('click', () => this.showTemplateManagerCard());
+        }
+
+        if (closeTemplateManagerBtn) {
+            closeTemplateManagerBtn.addEventListener('click', () => this.hideTemplateManagerCard());
+        }
+
+        if (showNewTemplateFormBtn) {
+            showNewTemplateFormBtn.addEventListener('click', () => this.showNewTemplateForm());
+        }
+
+        if (cancelNewTemplateBtn) {
+            cancelNewTemplateBtn.addEventListener('click', () => this.hideNewTemplateForm());
+        }
+
+        if (createTemplateBtn) {
+            createTemplateBtn.addEventListener('click', () => this.createTemplate());
+        }
+
+        if (editTemplateBtn) {
+            editTemplateBtn.addEventListener('click', () => this.showEditTemplate());
+        }
+
+        if (saveTemplateBtn) {
+            saveTemplateBtn.addEventListener('click', () => this.saveTemplate());
+        }
+
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', () => this.hideEditTemplate());
+        }
+
+        if (deleteTemplateBtn) {
+            deleteTemplateBtn.addEventListener('click', () => this.deleteTemplate());
+        }
+
+        if (setAsDefaultBtn) {
+            setAsDefaultBtn.addEventListener('click', () => this.setDefaultTemplate());
+        }
+    }
+
+    async loadTemplates() {
+        try {
+            const response = await fetch('/api/templates');
+            const data = await response.json();
+
+            if (data.success) {
+                this.updateTemplateSelect(data.templates, data.default_template_id);
+            } else {
+                console.error('テンプレートの読み込みに失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('テンプレートの読み込みエラー:', error);
+        }
+    }
+
+    updateTemplateSelect(templates, defaultTemplateId) {
+        const templateSelect = document.getElementById('templateSelect');
+        templateSelect.innerHTML = '';
+
+        templates.forEach(template => {
+            const option = document.createElement('option');
+            option.value = template.id;
+            option.textContent = template.name;
+            if (template.id === defaultTemplateId) {
+                option.selected = true;
+            }
+            templateSelect.appendChild(option);
+        });
+    }
+
+    showTemplateManagerCard() {
+        document.getElementById('uploadCard').style.display = 'none';
+        document.getElementById('templateManagerCard').style.display = 'block';
+        this.loadTemplateManagerData();
+    }
+
+    hideTemplateManagerCard() {
+        document.getElementById('templateManagerCard').style.display = 'none';
+        document.getElementById('uploadCard').style.display = 'block';
+    }
+
+    async loadTemplateManagerData() {
+        try {
+            const response = await fetch('/api/templates');
+            const data = await response.json();
+
+            if (data.success) {
+                this.displayTemplateList(data.templates, data.default_template_id);
+            } else {
+                console.error('テンプレートデータの読み込みに失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('テンプレートデータの読み込みエラー:', error);
+        }
+    }
+
+    displayTemplateList(templates, defaultTemplateId) {
+        const templateList = document.getElementById('templateList');
+        templateList.innerHTML = '';
+
+        templates.forEach(template => {
+            const templateDiv = document.createElement('div');
+            templateDiv.className = 'template-item';
+            templateDiv.innerHTML = `
+                <div class="template-item-header">
+                    <h4>${template.name} ${template.id === defaultTemplateId ? '<span class="badge badge-primary">デフォルト</span>' : ''}</h4>
+                    <div class="template-item-actions">
+                        <button class="btn btn-sm btn-primary" onclick="app.selectTemplate('${template.id}')">選択</button>
+                        <button class="btn btn-sm btn-secondary" onclick="app.editTemplate('${template.id}')">編集</button>
+                        ${!template.is_default ? `<button class="btn btn-sm btn-danger" onclick="app.deleteTemplate('${template.id}')">削除</button>` : ''}
+                    </div>
+                </div>
+                <div class="template-item-description">${template.description}</div>
+            `;
+            templateList.appendChild(templateDiv);
+        });
+    }
+
+    async selectTemplate(templateId) {
+        try {
+            const response = await fetch(`/api/templates/${templateId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.showTemplateDetails(data.template);
+            } else {
+                console.error('テンプレートの取得に失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('テンプレートの取得エラー:', error);
+        }
+    }
+
+    showTemplateDetails(template) {
+        const templateDetails = document.getElementById('templateDetails');
+        const templatePreview = document.getElementById('templatePreview');
+
+        templatePreview.innerHTML = `
+            <div class="template-detail-item">
+                <strong>ID:</strong> ${template.id}
+            </div>
+            <div class="template-detail-item">
+                <strong>名前:</strong> ${template.name}
+            </div>
+            <div class="template-detail-item">
+                <strong>説明:</strong> ${template.description}
+            </div>
+            <div class="template-detail-item">
+                <strong>プロンプトテンプレート:</strong>
+                <pre class="template-prompt-preview">${template.prompt_template.substring(0, 200)}...</pre>
+            </div>
+        `;
+
+        templateDetails.style.display = 'block';
+        this.currentEditingTemplate = template;
+    }
+
+    showNewTemplateForm() {
+        document.getElementById('newTemplateForm').style.display = 'block';
+        document.getElementById('templateList').style.display = 'none';
+    }
+
+    hideNewTemplateForm() {
+        document.getElementById('newTemplateForm').style.display = 'none';
+        document.getElementById('templateList').style.display = 'block';
+        this.clearNewTemplateForm();
+    }
+
+    clearNewTemplateForm() {
+        document.getElementById('newTemplateId').value = '';
+        document.getElementById('newTemplateName').value = '';
+        document.getElementById('newTemplateDescription').value = '';
+        document.getElementById('newTemplatePrompt').value = '';
+    }
+
+    async createTemplate() {
+        const templateId = document.getElementById('newTemplateId').value.trim();
+        const name = document.getElementById('newTemplateName').value.trim();
+        const description = document.getElementById('newTemplateDescription').value.trim();
+        const promptTemplate = document.getElementById('newTemplatePrompt').value.trim();
+
+        if (!templateId || !name || !promptTemplate) {
+            alert('テンプレートID、名前、プロンプトテンプレートは必須です。');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/templates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: templateId,
+                    name: name,
+                    description: description,
+                    prompt_template: promptTemplate
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('テンプレートを作成しました。');
+                this.hideNewTemplateForm();
+                this.loadTemplateManagerData();
+                this.loadTemplates(); // セレクトボックスも更新
+            } else {
+                alert('テンプレートの作成に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('テンプレート作成エラー:', error);
+            alert('テンプレートの作成中にエラーが発生しました。');
+        }
+    }
+
+    async editTemplate(templateId) {
+        try {
+            const response = await fetch(`/api/templates/${templateId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.showEditTemplateForm(data.template);
+            } else {
+                console.error('テンプレートの取得に失敗:', data.message);
+            }
+        } catch (error) {
+            console.error('テンプレートの取得エラー:', error);
+        }
+    }
+
+    showEditTemplateForm(template) {
+        document.getElementById('editTemplateId').value = template.id;
+        document.getElementById('editTemplateName').value = template.name;
+        document.getElementById('editTemplateDescription').value = template.description;
+        document.getElementById('editTemplatePrompt').value = template.prompt_template;
+
+        document.getElementById('templateEditor').style.display = 'block';
+        document.getElementById('templateList').style.display = 'none';
+        this.currentEditingTemplate = template;
+    }
+
+    hideEditTemplate() {
+        document.getElementById('templateEditor').style.display = 'none';
+        document.getElementById('templateList').style.display = 'block';
+        this.currentEditingTemplate = null;
+    }
+
+    async saveTemplate() {
+        if (!this.currentEditingTemplate) {
+            alert('編集するテンプレートが選択されていません。');
+            return;
+        }
+
+        const templateId = this.currentEditingTemplate.id;
+        const name = document.getElementById('editTemplateName').value.trim();
+        const description = document.getElementById('editTemplateDescription').value.trim();
+        const promptTemplate = document.getElementById('editTemplatePrompt').value.trim();
+
+        if (!name || !promptTemplate) {
+            alert('名前とプロンプトテンプレートは必須です。');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/templates/${templateId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    description: description,
+                    prompt_template: promptTemplate
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('テンプレートを更新しました。');
+                this.hideEditTemplate();
+                this.loadTemplateManagerData();
+                this.loadTemplates(); // セレクトボックスも更新
+            } else {
+                alert('テンプレートの更新に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('テンプレート更新エラー:', error);
+            alert('テンプレートの更新中にエラーが発生しました。');
+        }
+    }
+
+    async deleteTemplate(templateId) {
+        if (!confirm('このテンプレートを削除しますか？')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/templates/${templateId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('テンプレートを削除しました。');
+                this.loadTemplateManagerData();
+                this.loadTemplates(); // セレクトボックスも更新
+            } else {
+                alert('テンプレートの削除に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('テンプレート削除エラー:', error);
+            alert('テンプレートの削除中にエラーが発生しました。');
+        }
+    }
+
+    async setDefaultTemplate() {
+        if (!this.currentEditingTemplate) {
+            alert('デフォルトに設定するテンプレートが選択されていません。');
+            return;
+        }
+
+        const templateId = this.currentEditingTemplate.id;
+
+        try {
+            const response = await fetch(`/api/templates/${templateId}/default`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('デフォルトテンプレートを設定しました。');
+                this.loadTemplateManagerData();
+                this.loadTemplates(); // セレクトボックスも更新
+            } else {
+                alert('デフォルトテンプレートの設定に失敗しました: ' + data.message);
+            }
+        } catch (error) {
+            console.error('デフォルトテンプレート設定エラー:', error);
+            alert('デフォルトテンプレートの設定中にエラーが発生しました。');
         }
     }
     
