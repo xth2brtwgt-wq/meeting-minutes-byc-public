@@ -42,15 +42,11 @@ nano env.production
 # Gemini API設定（必須）
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 
-# セキュリティ設定（必須）
-SECRET_KEY=your-very-secure-secret-key-here
-
 # メール設定（オプション）
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_app_password_here
-FROM_EMAIL=your_email@gmail.com
+SMTP_USERNAME=your_smtp_username_here
+SMTP_PASSWORD=your_smtp_password_here
 
 # Notion設定（オプション）
 NOTION_API_KEY=your_notion_api_key_here

@@ -23,12 +23,10 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - FROM_EMAIL=${FROM_EMAIL}
       - UPLOAD_DIR=/app/uploads
       - TRANSCRIPT_DIR=/app/transcripts
       - TEMPLATES_DIR=/app/templates
       - TZ=Asia/Tokyo
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
     restart: unless-stopped
     labels:
       - "com.docker.compose.project=meeting-minutes-byc"
