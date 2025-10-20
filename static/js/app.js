@@ -610,12 +610,39 @@ class MeetingMinutesApp {
     showDictionaryCard() {
         document.getElementById('uploadCard').style.display = 'none';
         document.getElementById('dictionaryCard').style.display = 'block';
+        
+        // 辞書管理画面の表示状態をリセット
+        this.resetDictionaryState();
+        
         this.loadDictionaryData();
     }
 
     hideDictionaryCard() {
         document.getElementById('dictionaryCard').style.display = 'none';
         document.getElementById('uploadCard').style.display = 'block';
+        
+        // 辞書管理画面の表示状態をリセット
+        this.resetDictionaryState();
+    }
+    
+    resetDictionaryState() {
+        // 検索結果を非表示
+        const searchResults = document.getElementById('searchResults');
+        if (searchResults) {
+            searchResults.style.display = 'none';
+        }
+        
+        // 検索入力フィールドをクリア
+        const dictionarySearch = document.getElementById('dictionarySearch');
+        if (dictionarySearch) {
+            dictionarySearch.value = '';
+        }
+        
+        // 辞書エントリ追加フォームをクリア
+        const entryJapanese = document.getElementById('entryJapanese');
+        const entryCorrect = document.getElementById('entryCorrect');
+        if (entryJapanese) entryJapanese.value = '';
+        if (entryCorrect) entryCorrect.value = '';
     }
 
     async loadDictionaryData() {
@@ -898,12 +925,51 @@ class MeetingMinutesApp {
     showTemplateManagerCard() {
         document.getElementById('uploadCard').style.display = 'none';
         document.getElementById('templateManagerCard').style.display = 'block';
+        
+        // テンプレート管理画面の表示状態をリセット
+        this.resetTemplateManagerState();
+        
         this.loadTemplateManagerData();
     }
 
     hideTemplateManagerCard() {
         document.getElementById('templateManagerCard').style.display = 'none';
         document.getElementById('uploadCard').style.display = 'block';
+        
+        // テンプレート管理画面の表示状態をリセット
+        this.resetTemplateManagerState();
+    }
+    
+    resetTemplateManagerState() {
+        // テンプレート詳細表示を非表示
+        const templateDetails = document.getElementById('templateDetails');
+        if (templateDetails) {
+            templateDetails.style.display = 'none';
+        }
+        
+        // テンプレート編集フォームを非表示
+        const templateEditor = document.getElementById('templateEditor');
+        if (templateEditor) {
+            templateEditor.style.display = 'none';
+        }
+        
+        // 新規テンプレート作成フォームを非表示
+        const newTemplateForm = document.getElementById('newTemplateForm');
+        if (newTemplateForm) {
+            newTemplateForm.style.display = 'none';
+        }
+        
+        // テンプレート一覧を表示
+        const templateList = document.getElementById('templateList');
+        if (templateList) {
+            templateList.style.display = 'block';
+        }
+        
+        // 編集状態をクリア
+        this.currentEditingTemplate = null;
+        
+        // 新規テンプレートフォームをクリア
+        this.clearNewTemplateForm();
     }
 
     async loadTemplateManagerData() {
