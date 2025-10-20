@@ -126,7 +126,7 @@ class MeetingMinutesApp {
                 // 実際の結果データを構築
                 const resultData = {
                     email_sent: true,
-                    email_address: 'mipatago.netsetting@gmail.com',
+                    email_address: 'nas.system.0828@gmail.com',
                     email_status: 'sent',
                     notion_sent: true,
                     notion_page_id: '28ebe777-5096-8114-a1d9-e03ba0c3a921',
@@ -1242,7 +1242,7 @@ class MeetingMinutesApp {
         document.getElementById('audioFile').value = '';
         document.getElementById('meetingDate').value = this.getCurrentDateTime();
         document.getElementById('conditions').value = '';
-        document.getElementById('email').value = 'mipatago.netsetting@gmail.com';
+        document.getElementById('email').value = 'nas.system.0828@gmail.com';
         document.getElementById('fileInfo').style.display = 'none';
         document.getElementById('resultCard').style.display = 'none';
         
