@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 UPLOAD_FOLDER = os.getenv('UPLOAD_DIR', './uploads')
 TRANSCRIPT_FOLDER = os.getenv('TRANSCRIPT_DIR', './transcripts')
+DEFAULT_EMAIL = os.getenv('EMAIL_TO', 'nas.system.0828@gmail.com')
 TEMPLATES_FOLDER = os.getenv('TEMPLATES_DIR', './templates')
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a', 'flac', 'ogg', 'webm'}
 
@@ -299,7 +300,8 @@ def index():
     """メインページ"""
     return render_template('index.html', 
                          app_name=APP_NAME, 
-                         app_version=APP_VERSION)
+                         app_version=APP_VERSION,
+                         default_email=DEFAULT_EMAIL)
 
 
 @app.route('/health')

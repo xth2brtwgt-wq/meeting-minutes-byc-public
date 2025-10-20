@@ -124,9 +124,11 @@ class MeetingMinutesApp {
                 // 結果画面を表示
                 console.log('🎉 showResultCardを呼び出します');
                 // 実際の結果データを構築
+                const emailInput = document.getElementById('email');
+                const defaultEmail = emailInput.getAttribute('value') || 'nas.system.0828@gmail.com';
                 const resultData = {
                     email_sent: true,
-                    email_address: 'nas.system.0828@gmail.com',
+                    email_address: defaultEmail,
                     email_status: 'sent',
                     notion_sent: true,
                     notion_page_id: '28ebe777-5096-8114-a1d9-e03ba0c3a921',
@@ -212,9 +214,11 @@ class MeetingMinutesApp {
         }
         
         // デフォルトの結果データを設定
+        const emailInput = document.getElementById('email');
+        const defaultEmail = emailInput ? emailInput.getAttribute('value') || 'nas.system.0828@gmail.com' : 'nas.system.0828@gmail.com';
         const defaultResult = {
             email_sent: true,
-            email_address: 'mipatago.netsetting@gmail.com',
+            email_address: defaultEmail,
             email_status: 'sent',
             notion_sent: true,
             notion_page_id: '28ebe777-5096-8114-a1d9-e03ba0c3a921'
@@ -1242,7 +1246,10 @@ class MeetingMinutesApp {
         document.getElementById('audioFile').value = '';
         document.getElementById('meetingDate').value = this.getCurrentDateTime();
         document.getElementById('conditions').value = '';
-        document.getElementById('email').value = 'nas.system.0828@gmail.com';
+        // デフォルトメールアドレスをHTMLのvalue属性から取得
+        const emailInput = document.getElementById('email');
+        const defaultEmail = emailInput.getAttribute('value') || 'nas.system.0828@gmail.com';
+        emailInput.value = defaultEmail;
         document.getElementById('fileInfo').style.display = 'none';
         document.getElementById('resultCard').style.display = 'none';
         
