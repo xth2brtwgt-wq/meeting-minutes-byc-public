@@ -42,16 +42,26 @@ nano env.production
 # Gemini API設定（必須）
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 
+# アプリケーション設定
+FLASK_ENV=production
+FLASK_DEBUG=False
+UPLOAD_DIR=/app/uploads
+TRANSCRIPT_DIR=/app/transcripts
+
+# サーバー設定
+HOST=0.0.0.0
+PORT=5002
+
+# Notion設定（オプション）
+NOTION_API_KEY=your_notion_api_key_here
+NOTION_DATABASE_ID=your_notion_database_id_here
+
 # メール設定（オプション）
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASSWORD=your_app_password_here
 EMAIL_FROM=your_email@gmail.com
-
-# Notion設定（オプション）
-NOTION_API_KEY=your_notion_api_key_here
-NOTION_DATABASE_ID=your_notion_database_id_here
 ```
 
 ### 5. NAS環境用デプロイスクリプトを実行
